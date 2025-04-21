@@ -78,17 +78,13 @@ void task(void *pvParameter)
             // max7219_set_brightness(&dev, c % 16);
             vTaskDelay(pdMS_TO_TICKS(200));
         }
-        // for (uint8_t c = 0; c < 32; c++)
-        // {
-        //     max7219_draw_image_8x8(&dev, c, (uint8_t *)symbols + c + offs);
-        //     // max7219_set_brightness(&dev, 4);
-        //     vTaskDelay(pdMS_TO_TICKS(200));
-        // }
-
+        offs += 8;
+        if (offs >= symbols_size + 8)
+            offs = 0;
         vTaskDelay(pdMS_TO_TICKS(CONFIG_EXAMPLE_SCROLL_DELAY));
 
-        if (++offs == symbols_size)
-            offs = 0;
+        // if (offs == symbols_size)
+        //     offs = 0;
     }
 }
 
