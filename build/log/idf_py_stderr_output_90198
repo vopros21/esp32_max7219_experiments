@@ -1,0 +1,85 @@
+[0;33m--- esp-idf-monitor 1.5.0 on /dev/cu.usbmodem101 115200[0m
+[0;33m--- Quit: Ctrl+] | Menu: Ctrl+T | Help: Ctrl+T followed by Ctrl+H[0m
+[1;31m--- Error: read failed: [Errno 6] Device not configured[0m
+[0;33m--- Waiting for the device to reconnect[0m[0;33m[0m
+[0;33m--- 0x4037901e: esp_cpu_wait_for_intr at /Users/mkostenko/esp32_repos/esp-idf/components/esp_hw_support/cpu.c:145
+[0m
+[0;33m--- 0x42008234: task at /Users/mkostenko/esp32_repos/8x8/main/main.c:52 (discriminator 1)
+[0m
+[0;33m--- 0x4037a7e3: _esp_error_check_failed at /Users/mkostenko/esp32_repos/esp-idf/components/esp_system/esp_err.c:50
+[0m
+[0;33m--- 0x403759ca: panic_abort at /Users/mkostenko/esp32_repos/esp-idf/components/esp_system/panic.c:466
+0x4037a7ed: esp_system_abort at /Users/mkostenko/esp32_repos/esp-idf/components/esp_system/port/esp_system_chip.c:93
+0x40381bed: abort at /Users/mkostenko/esp32_repos/esp-idf/components/newlib/abort.c:38
+0x4037a7e3: _esp_error_check_failed at /Users/mkostenko/esp32_repos/esp-idf/components/esp_system/esp_err.c:50
+0x42008234: task at /Users/mkostenko/esp32_repos/8x8/main/main.c:52 (discriminator 1)
+0x4037b255: vPortTaskWrapper at /Users/mkostenko/esp32_repos/esp-idf/components/freertos/FreeRTOS-Kernel/portable/xtensa/port.c:139
+[0m
+[0;33m--- 0x4037901e: esp_cpu_wait_for_intr at /Users/mkostenko/esp32_repos/esp-idf/components/esp_hw_support/cpu.c:145
+[0m
+[0;33m--- 0x42008234: task at /Users/mkostenko/esp32_repos/8x8/main/main.c:52 (discriminator 1)
+[0m
+[0;33m--- 0x4037a7e3: _esp_error_check_failed at /Users/mkostenko/esp32_repos/esp-idf/components/esp_system/esp_err.c:50
+[0m
+[0;33m--- 0x403759ca: panic_abort at /Users/mkostenko/esp32_repos/esp-idf/components/esp_system/panic.c:466
+0x4037a7ed: esp_system_abort at /Users/mkostenko/esp32_repos/esp-idf/components/esp_system/port/esp_system_chip.c:93
+0x40381bed: abort at /Users/mkostenko/esp32_repos/esp-idf/components/newlib/abort.c:38
+0x4037a7e3: _esp_error_check_failed at /Users/mkostenko/esp32_repos/esp-idf/components/esp_system/esp_err.c:50
+0x42008234: task at /Users/mkostenko/esp32_repos/8x8/main/main.c:52 (discriminator 1)
+0x4037b255: vPortTaskWrapper at /Users/mkostenko/esp32_repos/esp-idf/components/freertos/FreeRTOS-Kernel/portable/xtensa/port.c:139
+[0m
+[0;33m--- 0x4037901e: esp_cpu_wait_for_intr at /Users/mkostenko/esp32_repos/esp-idf/components/esp_hw_support/cpu.c:145
+[0m
+[0;33m--- 0x42008234: task at /Users/mkostenko/esp32_repos/8x8/main/main.c:52 (discriminator 1)
+[0m
+[0;33m--- 0x4037a7e3: _esp_error_check_failed at /Users/mkostenko/esp32_repos/esp-idf/components/esp_system/esp_err.c:50
+[0m
+[0;33m--- 0x403759ca: panic_abort at /Users/mkostenko/esp32_repos/esp-idf/components/esp_system/panic.c:466
+0x4037a7ed: esp_system_abort at /Users/mkostenko/esp32_repos/esp-idf/components/esp_system/port/esp_system_chip.c:93
+0x40381bed: abort at /Users/mkostenko/esp32_repos/esp-idf/components/newlib/abort.c:38
+0x4037a7e3: _esp_error_check_failed at /Users/mkostenko/esp32_repos/esp-idf/components/esp_system/esp_err.c:50
+0x42008234: task at /Users/mkostenko/esp32_repos/8x8/main/main.c:52 (discriminator 1)
+0x4037b255: vPortTaskWrapper at /Users/mkostenko/esp32_repos/esp-idf/components/freertos/FreeRTOS-Kernel/portable/xtensa/port.c:139
+[0m
+[0;33m--- 0x4037901e: esp_cpu_wait_for_intr at /Users/mkostenko/esp32_repos/esp-idf/components/esp_hw_support/cpu.c:145
+[0m
+[0;33m--- 0x42008234: task at /Users/mkostenko/esp32_repos/8x8/main/main.c:52 (discriminator 1)
+[0m
+[0;33m--- 0x4037a7e3: _esp_error_check_failed at /Users/mkostenko/esp32_repos/esp-idf/components/esp_system/esp_err.c:50
+[0m
+[0;33m--- 0x403759ca: panic_abort at /Users/mkostenko/esp32_repos/esp-idf/components/esp_system/panic.c:466
+0x4037a7ed: esp_system_abort at /Users/mkostenko/esp32_repos/esp-idf/components/esp_system/port/esp_system_chip.c:93
+0x40381bed: abort at /Users/mkostenko/esp32_repos/esp-idf/components/newlib/abort.c:38
+0x4037a7e3: _esp_error_check_failed at /Users/mkostenko/esp32_repos/esp-idf/components/esp_system/esp_err.c:50
+0x42008234: task at /Users/mkostenko/esp32_repos/8x8/main/main.c:52 (discriminator 1)
+0x4037b255: vPortTaskWrapper at /Users/mkostenko/esp32_repos/esp-idf/components/freertos/FreeRTOS-Kernel/portable/xtensa/port.c:139
+[0m
+[0;33m--- 0x4037901e: esp_cpu_wait_for_intr at /Users/mkostenko/esp32_repos/esp-idf/components/esp_hw_support/cpu.c:145
+[0m
+[0;33m--- 0x42008234: task at /Users/mkostenko/esp32_repos/8x8/main/main.c:52 (discriminator 1)
+[0m
+[0;33m--- 0x4037a7e3: _esp_error_check_failed at /Users/mkostenko/esp32_repos/esp-idf/components/esp_system/esp_err.c:50
+[0m
+[0;33m--- 0x403759ca: panic_abort at /Users/mkostenko/esp32_repos/esp-idf/components/esp_system/panic.c:466
+0x4037a7ed: esp_system_abort at /Users/mkostenko/esp32_repos/esp-idf/components/esp_system/port/esp_system_chip.c:93
+0x40381bed: abort at /Users/mkostenko/esp32_repos/esp-idf/components/newlib/abort.c:38
+0x4037a7e3: _esp_error_check_failed at /Users/mkostenko/esp32_repos/esp-idf/components/esp_system/esp_err.c:50
+0x42008234: task at /Users/mkostenko/esp32_repos/8x8/main/main.c:52 (discriminator 1)
+0x4037b255: vPortTaskWrapper at /Users/mkostenko/esp32_repos/esp-idf/components/freertos/FreeRTOS-Kernel/portable/xtensa/port.c:139
+[0m
+[0;33m--- 0x4037901e: esp_cpu_wait_for_intr at /Users/mkostenko/esp32_repos/esp-idf/components/esp_hw_support/cpu.c:145
+[0m
+[0;33m--- 0x42008234: task at /Users/mkostenko/esp32_repos/8x8/main/main.c:52 (discriminator 1)
+[0m
+[0;33m--- 0x4037a7e3: _esp_error_check_failed at /Users/mkostenko/esp32_repos/esp-idf/components/esp_system/esp_err.c:50
+[0m
+[0;33m--- 0x403759ca: panic_abort at /Users/mkostenko/esp32_repos/esp-idf/components/esp_system/panic.c:466
+0x4037a7ed: esp_system_abort at /Users/mkostenko/esp32_repos/esp-idf/components/esp_system/port/esp_system_chip.c:93
+0x40381bed: abort at /Users/mkostenko/esp32_repos/esp-idf/components/newlib/abort.c:38
+0x4037a7e3: _esp_error_check_failed at /Users/mkostenko/esp32_repos/esp-idf/components/esp_system/esp_err.c:50
+0x42008234: task at /Users/mkostenko/esp32_repos/8x8/main/main.c:52 (discriminator 1)
+0x4037b255: vPortTaskWrapper at /Users/mkostenko/esp32_repos/esp-idf/components/freertos/FreeRTOS-Kernel/portable/xtensa/port.c:139
+[0m
+[0;33m--- 0x4037901e: esp_cpu_wait_for_intr at /Users/mkostenko/esp32_repos/esp-idf/components/esp_hw_support/cpu.c:145
+[0m
+[0m

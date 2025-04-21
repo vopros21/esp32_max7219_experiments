@@ -1,0 +1,43 @@
+{
+	"sources" : 
+	[
+		{
+			"file" : "/Users/mkostenko/esp32_repos/8x8/build/CMakeFiles/bootloader"
+		},
+		{
+			"file" : "/Users/mkostenko/esp32_repos/8x8/build/CMakeFiles/bootloader.rule"
+		},
+		{
+			"file" : "/Users/mkostenko/esp32_repos/8x8/build/CMakeFiles/bootloader-complete.rule"
+		},
+		{
+			"file" : "/Users/mkostenko/esp32_repos/8x8/build/bootloader-prefix/src/bootloader-stamp/bootloader-build.rule"
+		},
+		{
+			"file" : "/Users/mkostenko/esp32_repos/8x8/build/bootloader-prefix/src/bootloader-stamp/bootloader-configure.rule"
+		},
+		{
+			"file" : "/Users/mkostenko/esp32_repos/8x8/build/bootloader-prefix/src/bootloader-stamp/bootloader-download.rule"
+		},
+		{
+			"file" : "/Users/mkostenko/esp32_repos/8x8/build/bootloader-prefix/src/bootloader-stamp/bootloader-install.rule"
+		},
+		{
+			"file" : "/Users/mkostenko/esp32_repos/8x8/build/bootloader-prefix/src/bootloader-stamp/bootloader-mkdir.rule"
+		},
+		{
+			"file" : "/Users/mkostenko/esp32_repos/8x8/build/bootloader-prefix/src/bootloader-stamp/bootloader-patch.rule"
+		},
+		{
+			"file" : "/Users/mkostenko/esp32_repos/8x8/build/bootloader-prefix/src/bootloader-stamp/bootloader-update.rule"
+		}
+	],
+	"target" : 
+	{
+		"labels" : 
+		[
+			"bootloader"
+		],
+		"name" : "bootloader"
+	}
+}

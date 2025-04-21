@@ -1,0 +1,2 @@
+source /Users/mkostenko/esp32_repos/8x8/build/bootloader/gdbinit/symbols
+source /Users/mkostenko/esp32_repos/8x8/build/bootloader/gdbinit/connect

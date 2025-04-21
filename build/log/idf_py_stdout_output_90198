@@ -1,0 +1,503 @@
+fc0
+
+
+
+
+ELF file SHA256: 783f6cf78
+
+Rebooting...
+ESP-ROM:esp32s3-20210327
+Build:Mar 27 2021
+rst:0xc (RTC_SW_CPU_RST),boot:0x8 (SPI_FAST_FLASH_BOOT)
+Saved PC:0x4037901e
+SPIWP:0xee
+mode:DIO, clock div:1
+load:0x3fce3810,len:0x1870
+load:0x403c9700,len:0x4
+load:0x403c9704,len:0xcec
+load:0x403cc700,len:0x2ec4
+entry 0x403c9918
+[0;32mI (26) boot: ESP-IDF v5.2.4 2nd stage bootloader[0m
+[0;32mI (26) boot: compile time Mar  9 2025 19:17:30[0m
+[0;32mI (26) boot: Multicore bootloader[0m
+[0;32mI (29) boot: chip revision: v0.2[0m
+[0;32mI (33) boot: efuse block revision: v1.3[0m
+[0;32mI (38) boot.esp32s3: Boot SPI Speed : 80MHz[0m
+[0;32mI (42) boot.esp32s3: SPI Mode       : DIO[0m
+[0;32mI (47) boot.esp32s3: SPI Flash Size : 2MB[0m
+[0;32mI (52) boot: Enabling RNG early entropy source...[0m
+[0;32mI (57) boot: Partition Table:[0m
+[0;32mI (61) boot: ## Label            Usage          Type ST Offset   Length[0m
+[0;32mI (68) boot:  0 nvs              WiFi data        01 02 00009000 00006000[0m
+[0;32mI (75) boot:  1 phy_init         RF data          01 01 0000f000 00001000[0m
+[0;32mI (83) boot:  2 factory          factory app      00 00 00010000 00100000[0m
+[0;32mI (90) boot: End of partition table[0m
+[0;32mI (95) esp_image: segment 0: paddr=00010020 vaddr=3c020020 size=0c208h ( 49672) map[0m
+[0;32mI (112) esp_image: segment 1: paddr=0001c230 vaddr=3fc93d00 size=029b8h ( 10680) load[0m
+[0;32mI (115) esp_image: segment 2: paddr=0001ebf0 vaddr=40374000 size=01428h (  5160) load[0m
+[0;32mI (121) esp_image: segment 3: paddr=00020020 vaddr=42000020 size=1b764h (112484) map[0m
+[0;32mI (148) esp_image: segment 4: paddr=0003b78c vaddr=40375428 size=0e8ach ( 59564) load[0m
+[0;32mI (168) boot: Loaded app from partition at offset 0x10000[0m
+[0;32mI (168) boot: Disabling RNG early entropy source...[0m
+[0;32mI (180) cpu_start: Multicore app[0m
+[0;32mI (189) cpu_start: Pro cpu start user code[0m
+[0;32mI (189) cpu_start: cpu freq: 160000000 Hz[0m
+[0;32mI (189) cpu_start: Application information:[0m
+[0;32mI (192) cpu_start: Project name:     example-max7219-7seg[0m
+[0;32mI (198) cpu_start: App version:      1[0m
+[0;32mI (203) cpu_start: Compile time:     Mar  9 2025 19:17:11[0m
+[0;32mI (209) cpu_start: ELF file SHA256:  783f6cf78...[0m
+[0;32mI (214) cpu_start: ESP-IDF:          v5.2.4[0m
+[0;32mI (219) cpu_start: Min chip rev:     v0.0[0m
+[0;32mI (224) cpu_start: Max chip rev:     v0.99 [0m
+[0;32mI (229) cpu_start: Chip rev:         v0.2[0m
+[0;32mI (233) heap_init: Initializing. RAM available for dynamic allocation:[0m
+[0;32mI (241) heap_init: At 3FC96F90 len 00052780 (329 KiB): RAM[0m
+[0;32mI (247) heap_init: At 3FCE9710 len 00005724 (21 KiB): RAM[0m
+[0;32mI (253) heap_init: At 3FCF0000 len 00008000 (32 KiB): DRAM[0m
+[0;32mI (259) heap_init: At 600FE010 len 00001FD8 (7 KiB): RTCRAM[0m
+[0;32mI (266) spi_flash: detected chip: generic[0m
+[0;32mI (270) spi_flash: flash io: dio[0m
+[0;33mW (274) spi_flash: Detected size(4096k) larger than the size in the binary image header(2048k). Using the size in the binary image header.[0m
+[0;32mI (287) sleep: Configure to isolate all GPIO pins in sleep state[0m
+[0;32mI (294) sleep: Enable automatic switching of GPIO sleep configuration[0m
+[0;32mI (301) main_task: Started on CPU0[0m
+[0;32mI (311) main_task: Calling app_main()[0m
+[0;32mI (311) main_task: Returned from app_main()[0m
+[0;31mE (311) spi: spi_bus_initialize(806): invalid dma channel, chip only support spi dma channel auto-alloc[0m
+ESP_ERROR_CHECK failed: esp_err_t 0x102 (ESP_ERR_INVALID_ARG) at 0x42008234
+file: "./main/main.c" line 52
+func: task
+expression: spi_bus_initialize(HOST, &cfg, 1)
+
+abort() was called at PC 0x4037a7e3 on core 1
+
+
+Backtrace: 0x403759ca:0x3fc9ce50 0x4037a7ed:0x3fc9ce70 0x40381bed:0x3fc9ce90 0x4037a7e3:0x3fc9cf00 0x42008234:0x3fc9cf30 0x4037b255:0x3fc9cfc0
+
+
+
+
+ELF file SHA256: 783f6cf78
+
+Rebooting...
+ESP-ROM:esp32s3-20210327
+Build:Mar 27 2021
+rst:0xc (RTC_SW_CPU_RST),boot:0x8 (SPI_FAST_FLASH_BOOT)
+Saved PC:0x4037901e
+SPIWP:0xee
+mode:DIO, clock div:1
+load:0x3fce3810,len:0x1870
+load:0x403c9700,len:0x4
+load:0x403c9704,len:0xcec
+load:0x403cc700,len:0x2ec4
+entry 0x403c9918
+[0;32mI (26) boot: ESP-IDF v5.2.4 2nd stage bootloader[0m
+[0;32mI (26) boot: compile time Mar  9 2025 19:17:30[0m
+[0;32mI (26) boot: Multicore bootloader[0m
+[0;32mI (29) boot: chip revision: v0.2[0m
+[0;32mI (33) boot: efuse block revision: v1.3[0m
+[0;32mI (38) boot.esp32s3: Boot SPI Speed : 80MHz[0m
+[0;32mI (42) boot.esp32s3: SPI Mode       : DIO[0m
+[0;32mI (47) boot.esp32s3: SPI Flash Size : 2MB[0m
+[0;32mI (52) boot: Enabling RNG early entropy source...[0m
+[0;32mI (57) boot: Partition Table:[0m
+[0;32mI (61) boot: ## Label            Usage          Type ST Offset   Length[0m
+[0;32mI (68) boot:  0 nvs              WiFi data        01 02 00009000 00006000[0m
+[0;32mI (75) boot:  1 phy_init         RF data          01 01 0000f000 00001000[0m
+[0;32mI (83) boot:  2 factory          factory app      00 00 00010000 00100000[0m
+[0;32mI (90) boot: End of partition table[0m
+[0;32mI (95) esp_image: segment 0: paddr=00010020 vaddr=3c020020 size=0c208h ( 49672) map[0m
+[0;32mI (112) esp_image: segment 1: paddr=0001c230 vaddr=3fc93d00 size=029b8h ( 10680) load[0m
+[0;32mI (115) esp_image: segment 2: paddr=0001ebf0 vaddr=40374000 size=01428h (  5160) load[0m
+[0;32mI (121) esp_image: segment 3: paddr=00020020 vaddr=42000020 size=1b764h (112484) map[0m
+[0;32mI (148) esp_image: segment 4: paddr=0003b78c vaddr=40375428 size=0e8ach ( 59564) load[0m
+[0;32mI (168) boot: Loaded app from partition at offset 0x10000[0m
+[0;32mI (169) boot: Disabling RNG early entropy source...[0m
+[0;32mI (180) cpu_start: Multicore app[0m
+[0;32mI (189) cpu_start: Pro cpu start user code[0m
+[0;32mI (189) cpu_start: cpu freq: 160000000 Hz[0m
+[0;32mI (190) cpu_start: Application information:[0m
+[0;32mI (192) cpu_start: Project name:     example-max7219-7seg[0m
+[0;32mI (198) cpu_start: App version:      1[0m
+[0;32mI (203) cpu_start: Compile time:     Mar  9 2025 19:17:11[0m
+[0;32mI (209) cpu_start: ELF file SHA256:  783f6cf78...[0m
+[0;32mI (214) cpu_start: ESP-IDF:          v5.2.4[0m
+[0;32mI (219) cpu_start: Min chip rev:     v0.0[0m
+[0;32mI (224) cpu_start: Max chip rev:     v0.99 [0m
+[0;32mI (229) cpu_start: Chip rev:         v0.2[0m
+[0;32mI (234) heap_init: Initializing. RAM available for dynamic allocation:[0m
+[0;32mI (241) heap_init: At 3FC96F90 len 00052780 (329 KiB): RAM[0m
+[0;32mI (247) heap_init: At 3FCE9710 len 00005724 (21 KiB): RAM[0m
+[0;32mI (253) heap_init: At 3FCF0000 len 00008000 (32 KiB): DRAM[0m
+[0;32mI (259) heap_init: At 600FE010 len 00001FD8 (7 KiB): RTCRAM[0m
+[0;32mI (266) spi_flash: detected chip: generic[0m
+[0;32mI (270) spi_flash: flash io: dio[0m
+[0;33mW (274) spi_flash: Detected size(4096k) larger than the size in the binary image header(2048k). Using the size in the binary image header.[0m
+[0;32mI (287) sleep: Configure to isolate all GPIO pins in sleep state[0m
+[0;32mI (294) sleep: Enable automatic switching of GPIO sleep configuration[0m
+[0;32mI (301) main_task: Started on CPU0[0m
+[0;32mI (311) main_task: Calling app_main()[0m
+[0;32mI (311) main_task: Returned from app_main()[0m
+[0;31mE (311) spi: spi_bus_initialize(806): invalid dma channel, chip only support spi dma channel auto-alloc[0m
+ESP_ERROR_CHECK failed: esp_err_t 0x102 (ESP_ERR_INVALID_ARG) at 0x42008234
+file: "./main/main.c" line 52
+func: task
+expression: spi_bus_initialize(HOST, &cfg, 1)
+
+abort() was called at PC 0x4037a7e3 on core 1
+
+
+Backtrace: 0x403759ca:0x3fc9ce50 0x4037a7ed:0x3fc9ce70 0x40381bed:0x3fc9ce90 0x4037a7e3:0x3fc9cf00 0x42008234:0x3fc9cf30 0x4037b255:0x3fc9cfc0
+
+
+
+
+ELF file SHA256: 783f6cf78
+
+Rebooting...
+ESP-ROM:esp32s3-20210327
+Build:Mar 27 2021
+rst:0xc (RTC_SW_CPU_RST),boot:0x8 (SPI_FAST_FLASH_BOOT)
+Saved PC:0x4037901e
+SPIWP:0xee
+mode:DIO, clock div:1
+load:0x3fce3810,len:0x1870
+load:0x403c9700,len:0x4
+load:0x403c9704,len:0xcec
+load:0x403cc700,len:0x2ec4
+entry 0x403c9918
+[0;32mI (26) boot: ESP-IDF v5.2.4 2nd stage bootloader[0m
+[0;32mI (26) boot: compile time Mar  9 2025 19:17:30[0m
+[0;32mI (26) boot: Multicore bootloader[0m
+[0;32mI (29) boot: chip revision: v0.2[0m
+[0;32mI (33) boot: efuse block revision: v1.3[0m
+[0;32mI (38) boot.esp32s3: Boot SPI Speed : 80MHz[0m
+[0;32mI (42) boot.esp32s3: SPI Mode       : DIO[0m
+[0;32mI (47) boot.esp32s3: SPI Flash Size : 2MB[0m
+[0;32mI (52) boot: Enabling RNG early entropy source...[0m
+[0;32mI (57) boot: Partition Table:[0m
+[0;32mI (61) boot: ## Label            Usage          Type ST Offset   Length[0m
+[0;32mI (68) boot:  0 nvs              WiFi data        01 02 00009000 00006000[0m
+[0;32mI (75) boot:  1 phy_init         RF data          01 01 0000f000 00001000[0m
+[0;32mI (83) boot:  2 factory          factory app      00 00 00010000 00100000[0m
+[0;32mI (90) boot: End of partition table[0m
+[0;32mI (95) esp_image: segment 0: paddr=00010020 vaddr=3c020020 size=0c208h ( 49672) map[0m
+[0;32mI (112) esp_image: segment 1: paddr=0001c230 vaddr=3fc93d00 size=029b8h ( 10680) load[0m
+[0;32mI (115) esp_image: segment 2: paddr=0001ebf0 vaddr=40374000 size=01428h (  5160) load[0m
+[0;32mI (121) esp_image: segment 3: paddr=00020020 vaddr=42000020 size=1b764h (112484) map[0m
+[0;32mI (148) esp_image: segment 4: paddr=0003b78c vaddr=40375428 size=0e8ach ( 59564) load[0m
+[0;32mI (168) boot: Loaded app from partition at offset 0x10000[0m
+[0;32mI (168) boot: Disabling RNG early entropy source...[0m
+[0;32mI (180) cpu_start: Multicore app[0m
+[0;32mI (189) cpu_start: Pro cpu start user code[0m
+[0;32mI (189) cpu_start: cpu freq: 160000000 Hz[0m
+[0;32mI (189) cpu_start: Application information:[0m
+[0;32mI (192) cpu_start: Project name:     example-max7219-7seg[0m
+[0;32mI (198) cpu_start: App version:      1[0m
+[0;32mI (203) cpu_start: Compile time:     Mar  9 2025 19:17:11[0m
+[0;32mI (209) cpu_start: ELF file SHA256:  783f6cf78...[0m
+[0;32mI (214) cpu_start: ESP-IDF:          v5.2.4[0m
+[0;32mI (219) cpu_start: Min chip rev:     v0.0[0m
+[0;32mI (224) cpu_start: Max chip rev:     v0.99 [0m
+[0;32mI (229) cpu_start: Chip rev:         v0.2[0m
+[0;32mI (233) heap_init: Initializing. RAM available for dynamic allocation:[0m
+[0;32mI (241) heap_init: At 3FC96F90 len 00052780 (329 KiB): RAM[0m
+[0;32mI (247) heap_init: At 3FCE9710 len 00005724 (21 KiB): RAM[0m
+[0;32mI (253) heap_init: At 3FCF0000 len 00008000 (32 KiB): DRAM[0m
+[0;32mI (259) heap_init: At 600FE010 len 00001FD8 (7 KiB): RTCRAM[0m
+[0;32mI (266) spi_flash: detected chip: generic[0m
+[0;32mI (270) spi_flash: flash io: dio[0m
+[0;33mW (274) spi_flash: Detected size(4096k) larger than the size in the binary image header(2048k). Using the size in the binary image header.[0m
+[0;32mI (287) sleep: Configure to isolate all GPIO pins in sleep state[0m
+[0;32mI (294) sleep: Enable automatic switching of GPIO sleep configuration[0m
+[0;32mI (301) main_task: Started on CPU0[0m
+[0;32mI (311) main_task: Calling app_main()[0m
+[0;32mI (311) main_task: Returned from app_main()[0m
+[0;31mE (311) spi: spi_bus_initialize(806): invalid dma channel, chip only support spi dma channel auto-alloc[0m
+ESP_ERROR_CHECK failed: esp_err_t 0x102 (ESP_ERR_INVALID_ARG) at 0x42008234
+file: "./main/main.c" line 52
+func: task
+expression: spi_bus_initialize(HOST, &cfg, 1)
+
+abort() was called at PC 0x4037a7e3 on core 1
+
+
+Backtrace: 0x403759ca:0x3fc9ce50 0x4037a7ed:0x3fc9ce70 0x40381bed:0x3fc9ce90 0x4037a7e3:0x3fc9cf00 0x42008234:0x3fc9cf30 0x4037b255:0x3fc9cfc0
+
+
+
+
+ELF file SHA256: 783f6cf78
+
+Rebooting...
+ESP-ROM:esp32s3-20210327
+Build:Mar 27 2021
+rst:0xc (RTC_SW_CPU_RST),boot:0x8 (SPI_FAST_FLASH_BOOT)
+Saved PC:0x4037901e
+SPIWP:0xee
+mode:DIO, clock div:1
+load:0x3fce3810,len:0x1870
+load:0x403c9700,len:0x4
+load:0x403c9704,len:0xcec
+load:0x403cc700,len:0x2ec4
+entry 0x403c9918
+[0;32mI (26) boot: ESP-IDF v5.2.4 2nd stage bootloader[0m
+[0;32mI (26) boot: compile time Mar  9 2025 19:17:30[0m
+[0;32mI (26) boot: Multicore bootloader[0m
+[0;32mI (29) boot: chip revision: v0.2[0m
+[0;32mI (33) boot: efuse block revision: v1.3[0m
+[0;32mI (38) boot.esp32s3: Boot SPI Speed : 80MHz[0m
+[0;32mI (42) boot.esp32s3: SPI Mode       : DIO[0m
+[0;32mI (47) boot.esp32s3: SPI Flash Size : 2MB[0m
+[0;32mI (52) boot: Enabling RNG early entropy source...[0m
+[0;32mI (57) boot: Partition Table:[0m
+[0;32mI (61) boot: ## Label            Usage          Type ST Offset   Length[0m
+[0;32mI (68) boot:  0 nvs              WiFi data        01 02 00009000 00006000[0m
+[0;32mI (75) boot:  1 phy_init         RF data          01 01 0000f000 00001000[0m
+[0;32mI (83) boot:  2 factory          factory app      00 00 00010000 00100000[0m
+[0;32mI (90) boot: End of partition table[0m
+[0;32mI (95) esp_image: segment 0: paddr=00010020 vaddr=3c020020 size=0c208h ( 49672) map[0m
+[0;32mI (112) esp_image: segment 1: paddr=0001c230 vaddr=3fc93d00 size=029b8h ( 10680) load[0m
+[0;32mI (115) esp_image: segment 2: paddr=0001ebf0 vaddr=40374000 size=01428h (  5160) load[0m
+[0;32mI (121) esp_image: segment 3: paddr=00020020 vaddr=42000020 size=1b764h (112484) map[0m
+[0;32mI (148) esp_image: segment 4: paddr=0003b78c vaddr=40375428 size=0e8ach ( 59564) load[0m
+[0;32mI (168) boot: Loaded app from partition at offset 0x10000[0m
+[0;32mI (168) boot: Disabling RNG early entropy source...[0m
+[0;32mI (180) cpu_start: Multicore app[0m
+[0;32mI (189) cpu_start: Pro cpu start user code[0m
+[0;32mI (189) cpu_start: cpu freq: 160000000 Hz[0m
+[0;32mI (189) cpu_start: Application information:[0m
+[0;32mI (192) cpu_start: Project name:     example-max7219-7seg[0m
+[0;32mI (198) cpu_start: App version:      1[0m
+[0;32mI (203) cpu_start: Compile time:     Mar  9 2025 19:17:11[0m
+[0;32mI (209) cpu_start: ELF file SHA256:  783f6cf78...[0m
+[0;32mI (214) cpu_start: ESP-IDF:          v5.2.4[0m
+[0;32mI (219) cpu_start: Min chip rev:     v0.0[0m
+[0;32mI (224) cpu_start: Max chip rev:     v0.99 [0m
+[0;32mI (229) cpu_start: Chip rev:         v0.2[0m
+[0;32mI (233) heap_init: Initializing. RAM available for dynamic allocation:[0m
+[0;32mI (241) heap_init: At 3FC96F90 len 00052780 (329 KiB): RAM[0m
+[0;32mI (247) heap_init: At 3FCE9710 len 00005724 (21 KiB): RAM[0m
+[0;32mI (253) heap_init: At 3FCF0000 len 00008000 (32 KiB): DRAM[0m
+[0;32mI (259) heap_init: At 600FE010 len 00001FD8 (7 KiB): RTCRAM[0m
+[0;32mI (266) spi_flash: detected chip: generic[0m
+[0;32mI (270) spi_flash: flash io: dio[0m
+[0;33mW (274) spi_flash: Detected size(4096k) larger than the size in the binary image header(2048k). Using the size in the binary image header.[0m
+[0;32mI (287) sleep: Configure to isolate all GPIO pins in sleep state[0m
+[0;32mI (294) sleep: Enable automatic switching of GPIO sleep configuration[0m
+[0;32mI (301) main_task: Started on CPU0[0m
+[0;32mI (311) main_task: Calling app_main()[0m
+[0;32mI (311) main_task: Returned from app_main()[0m
+[0;31mE (311) spi: spi_bus_initialize(806): invalid dma channel, chip only support spi dma channel auto-alloc[0m
+ESP_ERROR_CHECK failed: esp_err_t 0x102 (ESP_ERR_INVALID_ARG) at 0x42008234
+file: "./main/main.c" line 52
+func: task
+expression: spi_bus_initialize(HOST, &cfg, 1)
+
+abort() was called at PC 0x4037a7e3 on core 1
+
+
+Backtrace: 0x403759ca:0x3fc9ce50 0x4037a7ed:0x3fc9ce70 0x40381bed:0x3fc9ce90 0x4037a7e3:0x3fc9cf00 0x42008234:0x3fc9cf30 0x4037b255:0x3fc9cfc0
+
+
+
+
+ELF file SHA256: 783f6cf78
+
+Rebooting...
+ESP-ROM:esp32s3-20210327
+Build:Mar 27 2021
+rst:0xc (RTC_SW_CPU_RST),boot:0x8 (SPI_FAST_FLASH_BOOT)
+Saved PC:0x4037901e
+SPIWP:0xee
+mode:DIO, clock div:1
+load:0x3fce3810,len:0x1870
+load:0x403c9700,len:0x4
+load:0x403c9704,len:0xcec
+load:0x403cc700,len:0x2ec4
+entry 0x403c9918
+[0;32mI (26) boot: ESP-IDF v5.2.4 2nd stage bootloader[0m
+[0;32mI (26) boot: compile time Mar  9 2025 19:17:30[0m
+[0;32mI (26) boot: Multicore bootloader[0m
+[0;32mI (29) boot: chip revision: v0.2[0m
+[0;32mI (33) boot: efuse block revision: v1.3[0m
+[0;32mI (38) boot.esp32s3: Boot SPI Speed : 80MHz[0m
+[0;32mI (42) boot.esp32s3: SPI Mode       : DIO[0m
+[0;32mI (47) boot.esp32s3: SPI Flash Size : 2MB[0m
+[0;32mI (52) boot: Enabling RNG early entropy source...[0m
+[0;32mI (57) boot: Partition Table:[0m
+[0;32mI (61) boot: ## Label            Usage          Type ST Offset   Length[0m
+[0;32mI (68) boot:  0 nvs              WiFi data        01 02 00009000 00006000[0m
+[0;32mI (75) boot:  1 phy_init         RF data          01 01 0000f000 00001000[0m
+[0;32mI (83) boot:  2 factory          factory app      00 00 00010000 00100000[0m
+[0;32mI (90) boot: End of partition table[0m
+[0;32mI (95) esp_image: segment 0: paddr=00010020 vaddr=3c020020 size=0c208h ( 49672) map[0m
+[0;32mI (112) esp_image: segment 1: paddr=0001c230 vaddr=3fc93d00 size=029b8h ( 10680) load[0m
+[0;32mI (115) esp_image: segment 2: paddr=0001ebf0 vaddr=40374000 size=01428h (  5160) load[0m
+[0;32mI (121) esp_image: segment 3: paddr=00020020 vaddr=42000020 size=1b764h (112484) map[0m
+[0;32mI (148) esp_image: segment 4: paddr=0003b78c vaddr=40375428 size=0e8ach ( 59564) load[0m
+[0;32mI (168) boot: Loaded app from partition at offset 0x10000[0m
+[0;32mI (168) boot: Disabling RNG early entropy source...[0m
+[0;32mI (180) cpu_start: Multicore app[0m
+[0;32mI (189) cpu_start: Pro cpu start user code[0m
+[0;32mI (189) cpu_start: cpu freq: 160000000 Hz[0m
+[0;32mI (189) cpu_start: Application information:[0m
+[0;32mI (192) cpu_start: Project name:     example-max7219-7seg[0m
+[0;32mI (198) cpu_start: App version:      1[0m
+[0;32mI (203) cpu_start: Compile time:     Mar  9 2025 19:17:11[0m
+[0;32mI (209) cpu_start: ELF file SHA256:  783f6cf78...[0m
+[0;32mI (214) cpu_start: ESP-IDF:          v5.2.4[0m
+[0;32mI (219) cpu_start: Min chip rev:     v0.0[0m
+[0;32mI (224) cpu_start: Max chip rev:     v0.99 [0m
+[0;32mI (229) cpu_start: Chip rev:         v0.2[0m
+[0;32mI (233) heap_init: Initializing. RAM available for dynamic allocation:[0m
+[0;32mI (241) heap_init: At 3FC96F90 len 00052780 (329 KiB): RAM[0m
+[0;32mI (247) heap_init: At 3FCE9710 len 00005724 (21 KiB): RAM[0m
+[0;32mI (253) heap_init: At 3FCF0000 len 00008000 (32 KiB): DRAM[0m
+[0;32mI (259) heap_init: At 600FE010 len 00001FD8 (7 KiB): RTCRAM[0m
+[0;32mI (266) spi_flash: detected chip: generic[0m
+[0;32mI (270) spi_flash: flash io: dio[0m
+[0;33mW (274) spi_flash: Detected size(4096k) larger than the size in the binary image header(2048k). Using the size in the binary image header.[0m
+[0;32mI (287) sleep: Configure to isolate all GPIO pins in sleep state[0m
+[0;32mI (294) sleep: Enable automatic switching of GPIO sleep configuration[0m
+[0;32mI (301) main_task: Started on CPU0[0m
+[0;32mI (311) main_task: Calling app_main()[0m
+[0;32mI (311) main_task: Returned from app_main()[0m
+[0;31mE (311) spi: spi_bus_initialize(806): invalid dma channel, chip only support spi dma channel auto-alloc[0m
+ESP_ERROR_CHECK failed: esp_err_t 0x102 (ESP_ERR_INVALID_ARG) at 0x42008234
+file: "./main/main.c" line 52
+func: task
+expression: spi_bus_initialize(HOST, &cfg, 1)
+
+abort() was called at PC 0x4037a7e3 on core 1
+
+
+Backtrace: 0x403759ca:0x3fc9ce50 0x4037a7ed:0x3fc9ce70 0x40381bed:0x3fc9ce90 0x4037a7e3:0x3fc9cf00 0x42008234:0x3fc9cf30 0x4037b255:0x3fc9cfc0
+
+
+
+
+ELF file SHA256: 783f6cf78
+
+Rebooting...
+ESP-ROM:esp32s3-20210327
+Build:Mar 27 2021
+rst:0xc (RTC_SW_CPU_RST),boot:0x8 (SPI_FAST_FLASH_BOOT)
+Saved PC:0x4037901e
+SPIWP:0xee
+mode:DIO, clock div:1
+load:0x3fce3810,len:0x1870
+load:0x403c9700,len:0x4
+load:0x403c9704,len:0xcec
+load:0x403cc700,len:0x2ec4
+entry 0x403c9918
+[0;32mI (26) boot: ESP-IDF v5.2.4 2nd stage bootloader[0m
+[0;32mI (26) boot: compile time Mar  9 2025 19:17:30[0m
+[0;32mI (26) boot: Multicore bootloader[0m
+[0;32mI (29) boot: chip revision: v0.2[0m
+[0;32mI (33) boot: efuse block revision: v1.3[0m
+[0;32mI (38) boot.esp32s3: Boot SPI Speed : 80MHz[0m
+[0;32mI (42) boot.esp32s3: SPI Mode       : DIO[0m
+[0;32mI (47) boot.esp32s3: SPI Flash Size : 2MB[0m
+[0;32mI (52) boot: Enabling RNG early entropy source...[0m
+[0;32mI (57) boot: Partition Table:[0m
+[0;32mI (61) boot: ## Label            Usage          Type ST Offset   Length[0m
+[0;32mI (68) boot:  0 nvs              WiFi data        01 02 00009000 00006000[0m
+[0;32mI (75) boot:  1 phy_init         RF data          01 01 0000f000 00001000[0m
+[0;32mI (83) boot:  2 factory          factory app      00 00 00010000 00100000[0m
+[0;32mI (90) boot: End of partition table[0m
+[0;32mI (95) esp_image: segment 0: paddr=00010020 vaddr=3c020020 size=0c208h ( 49672) map[0m
+[0;32mI (112) esp_image: segment 1: paddr=0001c230 vaddr=3fc93d00 size=029b8h ( 10680) load[0m
+[0;32mI (115) esp_image: segment 2: paddr=0001ebf0 vaddr=40374000 size=01428h (  5160) load[0m
+[0;32mI (121) esp_image: segment 3: paddr=00020020 vaddr=42000020 size=1b764h (112484) map[0m
+[0;32mI (148) esp_image: segment 4: paddr=0003b78c vaddr=40375428 size=0e8ach ( 59564) load[0m
+[0;32mI (168) boot: Loaded app from partition at offset 0x10000[0m
+[0;32mI (168) boot: Disabling RNG early entropy source...[0m
+[0;32mI (180) cpu_start: Multicore app[0m
+[0;32mI (189) cpu_start: Pro cpu start user code[0m
+[0;32mI (189) cpu_start: cpu freq: 160000000 Hz[0m
+[0;32mI (189) cpu_start: Application information:[0m
+[0;32mI (192) cpu_start: Project name:     example-max7219-7seg[0m
+[0;32mI (198) cpu_start: App version:      1[0m
+[0;32mI (203) cpu_start: Compile time:     Mar  9 2025 19:17:11[0m
+[0;32mI (209) cpu_start: ELF file SHA256:  783f6cf78...[0m
+[0;32mI (214) cpu_start: ESP-IDF:          v5.2.4[0m
+[0;32mI (219) cpu_start: Min chip rev:     v0.0[0m
+[0;32mI (224) cpu_start: Max chip rev:     v0.99 [0m
+[0;32mI (229) cpu_start: Chip rev:         v0.2[0m
+[0;32mI (233) heap_init: Initializing. RAM available for dynamic allocation:[0m
+[0;32mI (241) heap_init: At 3FC96F90 len 00052780 (329 KiB): RAM[0m
+[0;32mI (247) heap_init: At 3FCE9710 len 00005724 (21 KiB): RAM[0m
+[0;32mI (253) heap_init: At 3FCF0000 len 00008000 (32 KiB): DRAM[0m
+[0;32mI (259) heap_init: At 600FE010 len 00001FD8 (7 KiB): RTCRAM[0m
+[0;32mI (266) spi_flash: detected chip: generic[0m
+[0;32mI (270) spi_flash: flash io: dio[0m
+[0;33mW (274) spi_flash: Detected size(4096k) larger than the size in the binary image header(2048k). Using the size in the binary image header.[0m
+[0;32mI (287) sleep: Configure to isolate all GPIO pins in sleep state[0m
+[0;32mI (294) sleep: Enable automatic switching of GPIO sleep configuration[0m
+[0;32mI (301) main_task: Started on CPU0[0m
+[0;32mI (311) main_task: Calling app_main()[0m
+[0;32mI (311) main_task: Returned from app_main()[0m
+[0;31mE (311) spi: spi_bus_initialize(806): invalid dma channel, chip only support spi dma channel auto-alloc[0m
+ESP_ERROR_CHECK failed: esp_err_t 0x102 (ESP_ERR_INVALID_ARG) at 0x42008234
+file: "./main/main.c" line 52
+func: task
+expression: spi_bus_initialize(HOST, &cfg, 1)
+
+abort() was called at PC 0x4037a7e3 on core 1
+
+
+Backtrace: 0x403759ca:0x3fc9ce50 0x4037a7ed:0x3fc9ce70 0x40381bed:0x3fc9ce90 0x4037a7e3:0x3fc9cf00 0x42008234:0x3fc9cf30 0x4037b255:0x3fc9cfc0
+
+
+
+
+ELF file SHA256: 783f6cf78
+
+Rebooting...
+ESP-ROM:esp32s3-20210327
+Build:Mar 27 2021
+rst:0xc (RTC_SW_CPU_RST),boot:0x8 (SPI_FAST_FLASH_BOOT)
+Saved PC:0x4037901e
+SPIWP:0xee
+mode:DIO, clock div:1
+load:0x3fce3810,len:0x1870
+load:0x403c9700,len:0x4
+load:0x403c9704,len:0xcec
+load:0x403cc700,len:0x2ec4
+entry 0x403c9918
+[0;32mI (26) boot: ESP-IDF v5.2.4 2nd stage bootloader[0m
+[0;32mI (26) boot: compile time Mar  9 2025 19:17:30[0m
+[0;32mI (26) boot: Multicore bootloader[0m
+[0;32mI (29) boot: chip revision: v0.2[0m
+[0;32mI (33) boot: efuse block revision: v1.3[0m
+[0;32mI (38) boot.esp32s3: Boot SPI Speed : 80MHz[0m
+[0;32mI (42) boot.esp32s3: SPI Mode       : DIO[0m
+[0;32mI (47) boot.esp32s3: SPI Flash Size : 2MB[0m
+[0;32mI (52) boot: Enabling RNG early entropy source...[0m
+[0;32mI (57) boot: Partition Table:[0m
+[0;32mI (61) boot: ## Label            Usage          Type ST Offset   Length[0m
+[0;32mI (68) boot:  0 nvs              WiFi data        01 02 00009000 00006000[0m
+[0;32mI (75) boot:  1 phy_init         RF data          01 01 0000f000 00001000[0m
+[0;32mI (83) boot:  2 factory          factory app      00 00 00010000 00100000[0m
+[0;32mI (90) boot: End of partition table[0m
+[0;32mI (95) esp_image: segment 0: paddr=00010020 vaddr=3c020020 size=0c208h ( 49672) map[0m
+[0;32mI (112) esp_image: segment 1: paddr=0001c230 vaddr=3fc93d00 size=029b8h ( 10680) load[0m
+[0;32mI (115) esp_image: segment 2: paddr=0001ebf0 vaddr=40374000 size=01428h (  5160) load[0m
+[0;32mI (121) esp_image: segment 3: paddr=00020020 vaddr=42000020 size=1b764h (112484) map[0m
+[0;32mI (148) esp_image: segment 4: paddr=0003b78c vaddr=40375428 size=0e8ach ( 59564) load[0m
+[0;32mI (168) boot: Loaded app from partition at offset 0x10000[0m
+[0;32mI (168) boot: Disabling RNG early entropy source...[0m
+[0;32mI (180) cpu_start: Multicore app[0m
+[0;32mI (189) cpu_start: Pro cpu start user code[0m
+[0;32mI (189) cpu_start: cpu freq: 160000000 Hz[0m
+[0;32mI (189) cpu_start: Application information:[0m
+[0;32mI (192) cpu_start: Project name:     example-max7219-7seg[0m
+[0;32mI (198) cpu_start: App version:      1[0m
+[0;32mI (203) cpu_start: Compile time:     Mar  9 2025 19:17:11[0m
+[0;32mI (209) cpu_start: ELF file SHA256:  783f6cf78...[0m
+[0;32mI (214) cpu_start: ESP-IDF:          v5.2.4[0m
+[0;32mI (219) cpu_start: Min chip rev:     v0.0[0m
+[0;32mI (224) cpu_start: Max chip rev:     v0.99 [0m
+[0;32mI (229) cpu_start: Chip rev:         v0.2[0m
