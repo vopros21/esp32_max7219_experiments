@@ -21,6 +21,7 @@
 #define PIN_MOSI 4
 #define PIN_CS 5
 #define PIN_CLK 6
+#define BUTTON_GPIO GPIO_NUM_0
 
 #define TAG "MAX7219"
 
@@ -91,6 +92,34 @@ uint64_t blink(uint64_t val, bool blink_flag, bool is_hour)
     return result;
 }
 
+void set_system_time(int year, int month, int day, int hour, int min, int sec) {
+    struct tm t;
+    struct timeval now;
+
+    t.tm_year = year - 1900;  // tm_year is years since 1900
+    t.tm_mon = month - 1;     // tm_mon is 0-11
+    t.tm_mday = day;
+    t.tm_hour = hour;
+    t.tm_min = min;
+    t.tm_sec = sec;
+    t.tm_isdst = -1;          // Not considering daylight saving
+
+    time_t epoch_time = mktime(&t);
+    if (epoch_time == -1) {
+        printf("Failed to convert time\n");
+        return;
+    }
+
+    now.tv_sec = epoch_time;
+    now.tv_usec = 0;
+
+    if (settimeofday(&now, NULL) != 0) {
+        perror("settimeofday");
+    } else {
+        printf("System time set successfully\n");
+    }
+}
+
 void get_current_time_porto(uint64_t current_time[4]) {
     time_t now;
     struct tm timeinfo;
@@ -143,6 +172,8 @@ void task(void *pvParameter)
     };
     ESP_ERROR_CHECK(max7219_init_desc(&dev, HOST, MAX7219_MAX_CLOCK_SPEED_HZ, PIN_CS));
     ESP_ERROR_CHECK(max7219_init(&dev));
+
+    set_system_time(2025, 4, 22, 16, 32, 0);
     
     size_t offs = 0;
     bool blink_flag = false;
@@ -188,7 +219,27 @@ void task(void *pvParameter)
     }
 }
 
+void button_task(void *pvParameter)
+{
+    gpio_config_t io_conf = {
+        .pin_bit_mask = (1ULL << BUTTON_GPIO),
+        .mode = GPIO_MODE_INPUT,
+        .pull_up_en = GPIO_PULLUP_ENABLE,
+        .pull_down_en = GPIO_PULLDOWN_DISABLE,
+        .intr_type = GPIO_INTR_DISABLE
+    };
+    gpio_config(&io_conf);
+
+    while (1) {
+        int level = gpio_get_level(BUTTON_GPIO);
+        // Process button state here or send it to another task
+        printf("Button state: %d\n", level);
+        vTaskDelay(pdMS_TO_TICKS(1000));  // Poll every 1000 ms
+    }
+}
+
 void app_main()
 {
     xTaskCreatePinnedToCore(task, "task", configMINIMAL_STACK_SIZE * 3, NULL, 5, NULL, APP_CPU_NUM);
+    xTaskCreatePinnedToCore(button_task, "button_task", configMINIMAL_STACK_SIZE * 3, NULL, 5, NULL, APP_CPU_NUM);
 }
