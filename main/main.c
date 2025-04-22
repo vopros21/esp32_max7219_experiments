@@ -26,7 +26,7 @@
 
 // static const size_t symbols_size = sizeof(symbols) - sizeof(uint64_t) * CASCADE_SIZE;
 
-uint64_t shift_right(uint64_t val)
+uint64_t shift(uint64_t val, bool to_right)
 {
     uint8_t original[8];
     
@@ -42,7 +42,7 @@ uint64_t shift_right(uint64_t val)
     
     uint8_t shifted[8];
     for (int i = 0; i < 8; i++) {
-        shifted[i] = original[i] << 1;
+        shifted[i] = to_right ? original[i] << 1 : original[i] >> 1;
     }
     uint64_t result = 
     ((uint64_t)shifted[7] << 56) |
@@ -56,37 +56,7 @@ uint64_t shift_right(uint64_t val)
     return result;
 }
 
-uint64_t shift_left(uint64_t val)
-{
-    uint8_t original[8];
-    
-    original[0] = val & 0xFF;
-    original[1] = (val >> 8) & 0xFF;
-    original[2] = (val >> 16) & 0xFF;
-    original[3] = (val >> 24) & 0xFF;
-    original[4] = (val >> 32) & 0xFF;
-    original[5] = (val >> 40) & 0xFF;
-    original[6] = (val >> 48) & 0xFF;
-    original[7] = (val >> 56) & 0xFF;
-    
-    
-    uint8_t shifted[8];
-    for (int i = 0; i < 8; i++) {
-        shifted[i] = original[i] >> 1;
-    }
-    uint64_t result = 
-    ((uint64_t)shifted[7] << 56) |
-    ((uint64_t)shifted[6] << 48) |
-    ((uint64_t)shifted[5] << 40) |
-    ((uint64_t)shifted[4] << 32) |
-    ((uint64_t)shifted[3] << 24) |
-    ((uint64_t)shifted[2] << 16) |
-    ((uint64_t)shifted[1] << 8)  |
-    ((uint64_t)shifted[0]);
-    return result;
-}
-
-uint64_t blink_hour(uint64_t val, bool blink_flag)
+uint64_t blink(uint64_t val, bool blink_flag, bool is_hour)
 {
     uint8_t original[8];
     
@@ -104,45 +74,10 @@ uint64_t blink_hour(uint64_t val, bool blink_flag)
     for (int i = 0; i < 8; i++) {
         blinked[i] = original[i];
     }
-    blinked[2] = blink_flag ? original[2] ^ 0b10000000 : original[2];
-    blinked[3] = blink_flag ? original[3] ^ 0b10000000 : original[3];
-    blinked[5] = blink_flag ? original[5] ^ 0b10000000 : original[5];
-    blinked[6] = blink_flag ? original[6] ^ 0b10000000 : original[6];
-    
-    uint64_t result = 
-    ((uint64_t)blinked[7] << 56) |
-    ((uint64_t)blinked[6] << 48) |
-    ((uint64_t)blinked[5] << 40) |
-    ((uint64_t)blinked[4] << 32) |
-    ((uint64_t)blinked[3] << 24) |
-    ((uint64_t)blinked[2] << 16) |
-    ((uint64_t)blinked[1] << 8)  |
-    ((uint64_t)blinked[0]);
-    return result;
-}
-
-uint64_t blink_minutes(uint64_t val, bool blink_flag)
-{
-    uint8_t original[8];
-    
-    original[0] = val & 0xFF;
-    original[1] = (val >> 8) & 0xFF;
-    original[2] = (val >> 16) & 0xFF;
-    original[3] = (val >> 24) & 0xFF;
-    original[4] = (val >> 32) & 0xFF;
-    original[5] = (val >> 40) & 0xFF;
-    original[6] = (val >> 48) & 0xFF;
-    original[7] = (val >> 56) & 0xFF;
-    
-    
-    uint8_t blinked[8];
-    for (int i = 0; i < 8; i++) {
-        blinked[i] = original[i];
-    }
-    blinked[2] = blink_flag ? original[2] ^ 0b1 : original[2];
-    blinked[3] = blink_flag ? original[3] ^ 0b1 : original[3];
-    blinked[5] = blink_flag ? original[5] ^ 0b1 : original[5];
-    blinked[6] = blink_flag ? original[6] ^ 0b1 : original[6];
+    blinked[2] = blink_flag ? original[2] ^ (is_hour ? 0b10000000 : 0b1) : original[2];
+    blinked[3] = blink_flag ? original[3] ^ (is_hour ? 0b10000000 : 0b1) : original[3];
+    blinked[5] = blink_flag ? original[5] ^ (is_hour ? 0b10000000 : 0b1) : original[5];
+    blinked[6] = blink_flag ? original[6] ^ (is_hour ? 0b10000000 : 0b1) : original[6];
     
     uint64_t result = 
     ((uint64_t)blinked[7] << 56) |
@@ -181,8 +116,8 @@ void get_current_time_porto(uint64_t current_time[4]) {
 
     // Fill the current_time array with encoded digits
     current_time[0] = digits[hours / 10];
-    current_time[1] = shift_left(digits[hours % 10]);
-    current_time[2] = shift_right(digits[minutes / 10]);
+    current_time[1] = shift(digits[hours % 10], 0);
+    current_time[2] = shift(digits[minutes / 10], 1);
     current_time[3] = digits[minutes % 10];
 }
 
@@ -234,8 +169,8 @@ void task(void *pvParameter)
         uint64_t current_time[4];
         get_current_time_porto(current_time);
         
-        current_time[1] = blink_hour(current_time[1], blink_flag);
-        current_time[2] = blink_minutes(current_time[2], blink_flag);
+        current_time[1] = blink(current_time[1], blink_flag, 1);
+        current_time[2] = blink(current_time[2], blink_flag, 0);
         blink_flag = !blink_flag;
         
         const size_t time_size = sizeof(current_time) - sizeof(uint64_t) * CASCADE_SIZE;
