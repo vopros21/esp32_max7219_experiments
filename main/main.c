@@ -183,19 +183,6 @@ void task(void *pvParameter)
         printf("---------- draw\n");
         max7219_set_brightness(&dev, 0);
         
-        // for (uint8_t c = 0; c < CASCADE_SIZE; c++) {
-        //     max7219_draw_image_8x8(&dev, c * 8, (uint8_t *)symbols + c * 8 + offs);
-        //     // max7219_set_brightness(&dev, c % 16);
-        //     vTaskDelay(pdMS_TO_TICKS(200));
-        // }
-        // offs += 8;
-        // if (offs >= symbols_size + 8)
-        //     offs = 0;
-        // vTaskDelay(pdMS_TO_TICKS(CONFIG_EXAMPLE_SCROLL_DELAY));
-        
-        // if (offs == symbols_size)
-        //     offs = 0;
-        
         
         uint64_t current_time[4];
         get_current_time_porto(current_time);
@@ -208,13 +195,10 @@ void task(void *pvParameter)
         
         for (uint8_t c = 0; c < CASCADE_SIZE; c++) {
             max7219_draw_image_8x8(&dev, c * 8, (uint8_t *)current_time + c * 8 + offs);
-            // max7219_set_brightness(&dev, c % 16);
-            // vTaskDelay(pdMS_TO_TICKS(100));
         }
         offs += 8;
         if (offs >= time_size + 8)
         offs = 0;
-        // vTaskDelay(pdMS_TO_TICKS(CONFIG_EXAMPLE_SCROLL_DELAY));
         vTaskDelay(pdMS_TO_TICKS(500));
     }
 }
