@@ -62,16 +62,18 @@ void run_text(max7219_t *dev, const uint64_t val)
     }
 
     int row = 31;
-    while (row > 0) {
+    while (row > -8) {
         for (int j = 7; j >= 0; j--) {
             for (int i = 0; i < 8; i++) {
                 if (row <= 23) {
                     max7219_set_digit(dev, row + 8 - i, s[i] >> (8 - j));
                 }
-                max7219_set_digit(dev, row - i, s[i] << j);
+                if (row > 0) {
+                    max7219_set_digit(dev, row - i, s[i] << j);
+                }
             }
 
-            vTaskDelay(pdMS_TO_TICKS(200));
+            vTaskDelay(pdMS_TO_TICKS(100));
         }
         for (int i = 0; i < 8; i++) {
             if (row <= 23)
