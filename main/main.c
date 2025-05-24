@@ -44,6 +44,11 @@ static const uint64_t symbols[] = {
 };
 // static const size_t symbols_size = sizeof(symbols) - sizeof(uint64_t) * CASCADE_SIZE;
 
+
+// Note: The display matrix is divided into 8-pixel-wide columns, with valid column indices from 0 to 31.
+// To scroll symbols across the display, shift each symbol left by 8 columns, wrapping bits from one symbol
+// into the next. For multiple symbols, concatenate their bitmaps into a continuous stream, then extract
+// 8x8 segments for each display position. This ensures smooth scrolling and correct alignment across cascaded matrices.
 void run_text(max7219_t *dev, const uint64_t val)
 {
     uint8_t s[8];
