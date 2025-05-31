@@ -94,8 +94,8 @@ void task(void *pvParameter)
         printf("---------- draw: %d \n", dev.digits);
         max7219_set_brightness(&dev, 0);
         
-        run_text(&dev, symbols[2]);
-        run_text(&dev, symbols[22]);
+        // run_text(&dev, symbols[2]);
+        run_text(&dev, symbols[4]);
 
         // for (uint8_t c = 0; c < CASCADE_SIZE; c++) {
         //     max7219_draw_image_8x8(&dev, c * 8, (uint8_t *)symbols + c * 8 + offs);
