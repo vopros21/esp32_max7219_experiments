@@ -4,7 +4,9 @@
 #include <esp_idf_version.h>
 #include <max7219.h>
 #include <esp_idf_lib_helpers.h>
+
 #include "alphabet.h"
+
 
 #define HOST HELPER_SPI_HOST_DEFAULT
 
@@ -16,6 +18,8 @@
 #define PIN_MOSI 4
 #define PIN_CS 5
 #define PIN_CLK 6
+#define BUTTON_GPIO GPIO_NUM_0
+
 
 // static const size_t symbols_size = sizeof(symbols) - sizeof(uint64_t) * CASCADE_SIZE;
 
@@ -67,28 +71,25 @@ void task(void *pvParameter)
 {
     // Configure SPI bus
     spi_bus_config_t cfg = {
-       .mosi_io_num = PIN_MOSI,
-       .miso_io_num = -1,
-       .sclk_io_num = PIN_CLK,
-       .quadwp_io_num = -1,
-       .quadhd_io_num = -1,
-       .max_transfer_sz = 0,
-       .flags = 0
+        .mosi_io_num = PIN_MOSI,
+        .miso_io_num = -1,
+        .sclk_io_num = PIN_CLK,
+        .quadwp_io_num = -1,
+        .quadhd_io_num = -1,
+        .max_transfer_sz = 0,
+        .flags = 0
     };
     ESP_ERROR_CHECK(spi_bus_initialize(HOST, &cfg, 0));
-
+    
     // Configure device
     max7219_t dev = {
-       .cascade_size = CASCADE_SIZE,
-       .digits = 0,
-       .mirrored = true
+        .cascade_size = CASCADE_SIZE,
+        .digits = 0,
+        .mirrored = true
     };
     ESP_ERROR_CHECK(max7219_init_desc(&dev, HOST, MAX7219_MAX_CLOCK_SPEED_HZ, PIN_CS));
     ESP_ERROR_CHECK(max7219_init(&dev));
 
-    // size_t offs = 0;
-    // uint8_t row = 27;
-    // uint8_t value = 0xC0;
     while (1)
     {
         printf("---------- draw: %d \n", dev.digits);
@@ -124,15 +125,16 @@ void task(void *pvParameter)
         //     }
         // }
 
-
-
-
-        // if (offs == symbols_size)
-        //     offs = 0;
+    while (1) {
+        int level = gpio_get_level(BUTTON_GPIO);
+        // Process button state here or send it to another task
+        printf("Button state: %d\n", level);
+        vTaskDelay(pdMS_TO_TICKS(1000));  // Poll every 1000 ms
     }
 }
 
 void app_main()
 {
     xTaskCreatePinnedToCore(task, "task", configMINIMAL_STACK_SIZE * 3, NULL, 5, NULL, APP_CPU_NUM);
+    xTaskCreatePinnedToCore(button_task, "button_task", configMINIMAL_STACK_SIZE * 3, NULL, 5, NULL, APP_CPU_NUM);
 }
