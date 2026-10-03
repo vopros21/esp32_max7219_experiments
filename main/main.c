@@ -1,11 +1,13 @@
 #include <stdio.h>
+#include <string.h>
 #include <freertos/FreeRTOS.h>
 #include <freertos/task.h>
+#include <driver/gpio.h>
 #include <esp_idf_version.h>
 #include <max7219.h>
 #include <esp_idf_lib_helpers.h>
 
-#include "alphabet.h"
+#include "font8x8.h"
 
 
 #define HOST HELPER_SPI_HOST_DEFAULT
@@ -20,51 +22,89 @@
 #define PIN_CLK 6
 #define BUTTON_GPIO GPIO_NUM_0
 
+#define WIDTH (CASCADE_SIZE * 8)  // display width in pixels
+#define LETTER_SPACING 1           // empty columns between letters
+#define SPACE_WIDTH 3              // width of ' ' in columns
 
-// static const size_t symbols_size = sizeof(symbols) - sizeof(uint64_t) * CASCADE_SIZE;
+static const char *TEXT = "Hello, ESP32-S3! 0123456789";
 
 
-// Note: The display matrix is divided into 8-pixel-wide columns, with valid column indices from 0 to 31.
-// To scroll symbols across the display, shift each symbol left by 8 columns, wrapping bits from one symbol
-// into the next. For multiple symbols, concatenate their bitmaps into a continuous stream, then extract
-// 8x8 segments for each display position. This ensures smooth scrolling and correct alignment across cascaded matrices.
-void run_text(max7219_t *dev, const uint64_t val)
+// Logical framebuffer: one byte per column, x = 0 is the leftmost column.
+// Bit y of a column is the pixel in row y (y = 0 is the top row).
+static uint8_t fb[WIDTH];
+
+// Each 8x8 module is rotated by 90 degrees, so a MAX7219 digit register holds a
+// horizontal row of one module, not a column of the whole display. For pixel (x, y):
+//   digit = (x / 8) * 8 + y,  bit = x % 8
+// (digit index as passed to max7219_set_digit with dev.mirrored = true).
+static void fb_flush(max7219_t *dev)
 {
-    uint8_t s[8];
-    s[7] = val & 0xFF;
-    s[6] = (val >> 8) & 0xFF;
-    s[5] = (val >> 16) & 0xFF;
-    s[4] = (val >> 24) & 0xFF;
-    s[3] = (val >> 32) & 0xFF;
-    s[2] = (val >> 40) & 0xFF;
-    s[1] = (val >> 48) & 0xFF;
-    s[0] = (val >> 56) & 0xFF;
-
-    
-    for (int i = 0; i < 8; i++) {
-            max7219_set_digit(dev, i, 0);
-    }
-
-    int row = 31;
-    while (row > -8) {
-        for (int j = 7; j >= 0; j--) {
-            for (int i = 0; i < 8; i++) {
-                if (row <= 23) {
-                    max7219_set_digit(dev, row + 8 - i, s[i] >> (8 - j));
-                }
-                if (row > 0) {
-                    max7219_set_digit(dev, row - i, s[i] << j);
-                }
+    for (int m = 0; m < CASCADE_SIZE; m++) {
+        for (int y = 0; y < 8; y++) {
+            uint8_t row = 0;
+            for (int b = 0; b < 8; b++) {
+                if (fb[m * 8 + b] & (1 << y))
+                    row |= 1 << b;
             }
-
-            vTaskDelay(pdMS_TO_TICKS(100));
+            max7219_set_digit(dev, m * 8 + y, row);
         }
-        for (int i = 0; i < 8; i++) {
-            if (row <= 23)
-                max7219_set_digit(dev, row + 8 - i, 0);
-        }
-        row -= 8;
     }
+}
+
+// Shift the whole display one column left and put `col` into the rightmost column.
+static void push_column(max7219_t *dev, uint8_t col, uint32_t delay_ms)
+{
+    memmove(fb, fb + 1, WIDTH - 1);
+    fb[WIDTH - 1] = col;
+    fb_flush(dev);
+    vTaskDelay(pdMS_TO_TICKS(delay_ms));
+}
+
+static const uint8_t *get_glyph(char c)
+{
+    if (c < FONT8X8_FIRST || c > FONT8X8_LAST)
+        c = '?';
+    return font8x8[c - FONT8X8_FIRST];
+}
+
+// Take column x of a glyph (stored as rows) and turn it into a column byte.
+static uint8_t glyph_column(const uint8_t *glyph, int x)
+{
+    uint8_t col = 0;
+    for (int y = 0; y < 8; y++) {
+        if (glyph[y] & (1 << x))
+            col |= 1 << y;
+    }
+    return col;
+}
+
+// Scroll a string from right to left until it fully leaves the display.
+// Letters are proportional: empty columns on both sides of a glyph are trimmed.
+void scroll_text(max7219_t *dev, const char *text, uint32_t delay_ms)
+{
+    for (const char *p = text; *p; p++) {
+        const uint8_t *glyph = get_glyph(*p);
+
+        uint8_t used = 0;
+        for (int y = 0; y < 8; y++)
+            used |= glyph[y];
+
+        if (!used) {
+            for (int i = 0; i < SPACE_WIDTH; i++)
+                push_column(dev, 0, delay_ms);
+            continue;
+        }
+
+        int first = __builtin_ctz(used);
+        int last = 31 - __builtin_clz(used);
+        for (int x = first; x <= last; x++)
+            push_column(dev, glyph_column(glyph, x), delay_ms);
+        for (int i = 0; i < LETTER_SPACING; i++)
+            push_column(dev, 0, delay_ms);
+    }
+
+    for (int i = 0; i < WIDTH; i++)
+        push_column(dev, 0, delay_ms);
 }
 
 void task(void *pvParameter)
@@ -80,7 +120,7 @@ void task(void *pvParameter)
         .flags = 0
     };
     ESP_ERROR_CHECK(spi_bus_initialize(HOST, &cfg, 0));
-    
+
     // Configure device
     max7219_t dev = {
         .cascade_size = CASCADE_SIZE,
@@ -89,41 +129,24 @@ void task(void *pvParameter)
     };
     ESP_ERROR_CHECK(max7219_init_desc(&dev, HOST, MAX7219_MAX_CLOCK_SPEED_HZ, PIN_CS));
     ESP_ERROR_CHECK(max7219_init(&dev));
+    max7219_set_brightness(&dev, 0);
 
     while (1)
     {
-        printf("---------- draw: %d \n", dev.digits);
-        max7219_set_brightness(&dev, 0);
-        
-        // run_text(&dev, symbols[2]);
-        run_text(&dev, symbols['#' - 32]);
+        scroll_text(&dev, TEXT, CONFIG_EXAMPLE_SCROLL_DELAY);
+    }
+}
 
-        // for (uint8_t c = 0; c < CASCADE_SIZE; c++) {
-        //     max7219_draw_image_8x8(&dev, c * 8, (uint8_t *)symbols + c * 8 + offs);
-        //     // max7219_set_brightness(&dev, c % 16);
-        //     vTaskDelay(pdMS_TO_TICKS(200));
-        // }
-        // offs += 8;
-        // if (offs >= symbols_size + 8)
-        //     offs = 0;
-
-
-
-        // max7219_set_digit(&dev, row, value);
-        // vTaskDelay(pdMS_TO_TICKS(200));
-        // value >>= 1;
-        // if (value == 0x01) {
-        //     uint8_t new_row = row - 8 > dev.digits ? 27 : row - 8;
-        //     max7219_set_digit(&dev, new_row, 0x80);
-        // }
-        // if (value == 0) {
-        //     value = 0xC0;
-        //     max7219_set_digit(&dev, row, 0);
-        //     row -= 8;
-        //     if (row > dev.digits) {
-        //         row = 27;
-        //     }
-        // }
+void button_task(void *pvParameter)
+{
+    gpio_config_t io_conf = {
+        .pin_bit_mask = (1ULL << BUTTON_GPIO),
+        .mode = GPIO_MODE_INPUT,
+        .pull_up_en = GPIO_PULLUP_ENABLE,
+        .pull_down_en = GPIO_PULLDOWN_DISABLE,
+        .intr_type = GPIO_INTR_DISABLE
+    };
+    gpio_config(&io_conf);
 
     while (1) {
         int level = gpio_get_level(BUTTON_GPIO);
