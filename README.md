@@ -1,33 +1,36 @@
-# Example for `max7219` driver
+# ESP32-S3 8x32 LED matrix
 
-## Datasheet
+Scrolling text on four cascaded MAX7219 8x8 LED modules driven by an ESP32-S3-Zero, on the way to a
+DeskHub-style desk gadget (GitHub stats, clock, Pomodoro). See [ROADMAP.md](ROADMAP.md) for plans.
 
-[MAX7219/MAX7221](https://datasheets.maximintegrated.com/en/ds/MAX7219-MAX7221.pdf)
+## Hardware
 
-## What it does
+| Signal | ESP32-S3-Zero |
+|---|---|
+| MAX7219 `DIN` (MOSI) | GPIO4 |
+| MAX7219 `CS` | GPIO5 |
+| MAX7219 `CLK` | GPIO6 |
+| Button | GPIO0 (BOOT) |
+| `VCC` / `GND` | 5V / GND |
 
-The example configures one or more of `max7219` devices on a SPI bus. The
-number of cascaded display modules is `CONFIG_EXAMPLE_CASCADE_SIZE` (the
-default is 1).
+The modules on this board are rotated by 90 degrees relative to what the stock `max7219` driver
+expects. `fb_flush()` in `main/main.c` handles the remapping, so drawing code works with normal
+x/y coordinates. Several modules at high brightness need a solid power supply.
 
-It shows some patterns on the display in a loop.
+## Build and flash
 
-## Wiring
+Requires ESP-IDF v5.2.
 
-The example assumes that you are using a LED matrix display module with
-`MAX7219`. These modules usually come with:
+```sh
+. path/to/esp-idf/export.sh
+idf.py set-target esp32s3   # first time only
+idf.py build flash monitor
+```
 
-* `MOSI` or `DIN` pin
-* `CLK` pin
-* `CS` pin
-* `VCC` and `GND`
+Change the text in `TEXT` at the top of `main/main.c`; scroll speed is
+`CONFIG_EXAMPLE_SCROLL_DELAY` (`idf.py menuconfig` → Example configuration).
 
-| Name | Description | Defaults |
-|------|-------------|----------|
-| `CONFIG_EXAMPLE_PIN_NUM_MOSI` | GPIO number for `MOSI`, or `DIN` | "13" for `esp8266`, "19" for `esp32c3`, `esp32`, `esp32s2`, and `esp32s3` |
-| `CONFIG_EXAMPLE_PIN_NUM_CLK`  | GPIO number for `CLK`  | "14" for `esp8266`, "18" for `esp32c3`, `esp32`, `esp32s2`, and `esp32s3` |
-| `CONFIG_EXAMPLE_PIN_CS`       | GPIO number for `CS` | "15 for `esp8266`, "15" for `esp32c3`, `esp32`, `esp32s2`, and `esp32s3` |
+## Credits
 
-You may cascade several modules by increasing `CONFIG_EXAMPLE_CASCADE_SIZE`.
-In that case, be aware of current consumed by the modules. You need a stiff
-power source for the modules.
+- Drivers from [esp-idf-lib](https://github.com/UncleRus/esp-idf-lib) (`components/`).
+- Font: [font8x8](https://github.com/dhepper/font8x8) by Daniel Hepper (public domain).
