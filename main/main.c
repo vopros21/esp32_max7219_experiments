@@ -1,5 +1,7 @@
 #include <stdio.h>
 #include <string.h>
+#include <time.h>
+#include <sys/time.h>
 #include <freertos/FreeRTOS.h>
 #include <freertos/task.h>
 #include <freertos/queue.h>
@@ -11,6 +13,8 @@
 #include <button.h>
 
 #include "font8x8.h"
+#include "font_digits.h"
+#include "build_time.h"
 
 
 #define HOST HELPER_SPI_HOST_DEFAULT
@@ -30,7 +34,6 @@
 #define SPACE_WIDTH 3              // width of ' ' in columns
 
 #define TICK_MS 10                 // display loop period
-#define DEMO_STEP_MS 40            // demo animation speed
 
 static const char *TAG = "8x8";
 
@@ -192,41 +195,88 @@ static void text_on_button(button_event_t ev)
     text_enter(xTaskGetTickCount() * portTICK_PERIOD_MS);
 }
 
-// Demo mode: a dot bouncing around the 32x8 display. Placeholder until Clock.
-
-static int demo_x, demo_y, demo_dx, demo_dy;
-static uint32_t demo_last_ms;
-
-static void demo_enter(uint32_t now_ms)
+// Draw a string of digits, ':' and '.' with the narrow font, centred.
+// A ':' with `colon` false is left blank but keeps its width, so nothing jumps.
+static void draw_narrow(const char *str, bool colon)
 {
-    demo_x = 0;
-    demo_y = 0;
-    demo_dx = 1;
-    demo_dy = 1;
-    demo_last_ms = now_ms - DEMO_STEP_MS;  // draw the first frame right away
-}
-
-static bool demo_render(uint32_t now_ms)
-{
-    if (now_ms - demo_last_ms < DEMO_STEP_MS)
-        return false;
-    demo_last_ms = now_ms;
+    int width = -1;
+    for (const char *p = str; *p; p++)
+        width += (*p >= '0' && *p <= '9' ? DIGIT_WIDTH : 1) + 1;
 
     memset(fb, 0, sizeof(fb));
-    fb[demo_x] = 1 << demo_y;
+    int x = (WIDTH - width) / 2;
+    for (const char *p = str; *p; p++) {
+        if (*p >= '0' && *p <= '9') {
+            memcpy(fb + x, font_digits[*p - '0'], DIGIT_WIDTH);
+            x += DIGIT_WIDTH;
+        } else {
+            if (*p == '.')
+                fb[x] = DOT_COLUMN;
+            else if (*p == ':' && colon)
+                fb[x] = COLON_COLUMN;
+            x++;
+        }
+        x++;
+    }
+}
 
-    if (demo_x + demo_dx < 0 || demo_x + demo_dx >= WIDTH)
-        demo_dx = -demo_dx;
-    if (demo_y + demo_dy < 0 || demo_y + demo_dy >= 8)
-        demo_dy = -demo_dy;
-    demo_x += demo_dx;
-    demo_y += demo_dy;
+// Clock mode: HH:MM with a blinking colon, long press toggles the date (DD.MM).
+// Without Wi-Fi the time starts from the build time (see set_initial_time()).
+
+static bool clock_show_date;
+static int clock_last_key;   // what is on the display now, -1 = redraw
+
+static void clock_enter(uint32_t now_ms)
+{
+    clock_last_key = -1;
+}
+
+static bool clock_render(uint32_t now_ms)
+{
+    struct timeval tv;
+    gettimeofday(&tv, NULL);
+    struct tm tm;
+    localtime_r(&tv.tv_sec, &tm);
+
+    bool colon = tv.tv_usec < 500000;
+    int key = clock_show_date ? 10000 + tm.tm_mday * 100 + tm.tm_mon
+                              : (tm.tm_hour * 60 + tm.tm_min) * 2 + colon;
+    if (key == clock_last_key)
+        return false;
+    clock_last_key = key;
+
+    char buf[16];
+    if (clock_show_date)
+        snprintf(buf, sizeof(buf), "%02d.%02d", tm.tm_mday, tm.tm_mon + 1);
+    else
+        snprintf(buf, sizeof(buf), "%02d:%02d", tm.tm_hour, tm.tm_min);
+    draw_narrow(buf, colon);
     return true;
+}
+
+static void clock_on_button(button_event_t ev)
+{
+    clock_show_date = !clock_show_date;
+    clock_last_key = -1;
+}
+
+// No network time yet: start the system clock from the build time. It is local
+// time stored as if it were UTC (no time zone is set), which is fine for display.
+static void set_initial_time(void)
+{
+    struct tm tm = { 0 };
+    sscanf(BUILD_TIME, "%d-%d-%d %d:%d:%d",
+           &tm.tm_year, &tm.tm_mon, &tm.tm_mday, &tm.tm_hour, &tm.tm_min, &tm.tm_sec);
+    tm.tm_year -= 1900;
+    tm.tm_mon -= 1;
+    struct timeval tv = { .tv_sec = mktime(&tm) };
+    settimeofday(&tv, NULL);
+    ESP_LOGI(TAG, "Time set from build: %s", BUILD_TIME);
 }
 
 static const display_mode_t modes[] = {
     { "Text", text_enter, text_render, text_on_button },
-    { "Demo", demo_enter, demo_render, NULL },
+    { "Clock", clock_enter, clock_render, clock_on_button },
 };
 #define MODE_COUNT (sizeof(modes) / sizeof(modes[0]))
 
@@ -304,6 +354,7 @@ void display_task(void *pvParameter)
 
 void app_main()
 {
+    set_initial_time();
     button_queue = xQueueCreate(8, sizeof(button_event_t));
     ESP_ERROR_CHECK(button_init(&boot_button));
     xTaskCreatePinnedToCore(display_task, "display", 4096, NULL, 5, NULL, APP_CPU_NUM);

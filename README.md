@@ -29,8 +29,10 @@ idf.py build flash monitor
 
 ## Usage
 
-- Click BOOT: next mode (Text, Demo).
-- Hold BOOT ~1 s in Text mode: next message.
+- Click BOOT: next mode (Text, Clock).
+- Hold BOOT ~1 s: mode action — Text: next message, Clock: toggle time / date.
+
+Until Wi-Fi time sync exists, the clock starts from the build time, so it resets on every reboot.
 
 Messages are in `MESSAGES` at the top of `main/main.c`; scroll speed is
 `CONFIG_EXAMPLE_SCROLL_DELAY` (`idf.py menuconfig` → Example configuration).

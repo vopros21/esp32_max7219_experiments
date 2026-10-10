@@ -72,7 +72,7 @@ Holding a button for 10 s erases the credentials and returns to setup mode.
 - [x] **0. Text scrolling** — rotated-module mapping, framebuffer, ASCII font, `scroll_text()`.
 - [ ] **1. Modes without Wi-Fi**
   - [x] Mode framework, buttons (click / long press), non-blocking scroller, Demo mode.
-  - [ ] Narrow digit font, Clock (manual time for now).
+  - [x] Narrow digit font, Clock (starts from build time for now).
   - [ ] Pomodoro.
 - [ ] **2. Provisioning** — SoftAP + captive portal + NVS, station mode with fallback, Wi-Fi reset
       on long hold, SNTP + time zone.

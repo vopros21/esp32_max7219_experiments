@@ -37,6 +37,10 @@ render into `fb`, never call `max7219_set_digit()` directly.
   reports a change. New modes go into the `modes[]` table.
 - `main/font8x8.h` — ASCII 0x20..0x7E 8x8 font (public domain font8x8_basic). Byte 0 = top row,
   bit 0 = leftmost pixel. The scroller trims empty glyph columns for proportional spacing.
+- `main/font_digits.h` — hand-drawn 5x7 digits plus `:` / `.` for the clock, stored by column
+  (ready for `fb`), rows 0..6; the bottom row stays free.
+- `main/build_time.cmake` — generates `build/esp-idf/main/build_time.h` (`BUILD_TIME`) on every
+  build; the clock starts from it until SNTP exists. Hooked up in `main/CMakeLists.txt`.
 - `main/alphabet.h` — older hand-made `uint64_t` symbols (arrows, heart, sun, ...). Same orientation
   as the font (LSB byte = top row). Currently unused.
 - `components/` — vendored [esp-idf-lib](https://github.com/UncleRus/esp-idf-lib) drivers. Only
