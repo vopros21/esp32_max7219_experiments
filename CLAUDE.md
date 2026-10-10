@@ -9,7 +9,7 @@ see `ROADMAP.md`.
 - Board: Waveshare ESP32-S3-Zero (ESP32-S3FH4R2: 4 MB flash, 2 MB PSRAM — PSRAM not enabled in `sdkconfig`).
 - Display: 4 x MAX7219 modules, SPI. Pins: MOSI = GPIO4, CS = GPIO5, CLK = GPIO6.
 - Button: BOOT button on GPIO0 (input, internal pull-up), handled by `components/button`
-  (click = next mode, long press = mode action).
+  (click = next mode, ~1 s = mode action, 3 s = very long, 10 s = erase settings).
 - Onboard WS2812 RGB LED on GPIO21 (unused).
 - Pins to avoid for new inputs: 0/3/45/46 (strapping), 19/20 (USB), 21 (RGB LED), 4/5/6 (display).
   Good candidates for extra buttons: GPIO7, GPIO8.
@@ -102,3 +102,11 @@ string scroller was checked against the original single-letter `run_text`.
 
 - Small, focused commits. Merging straight into `main` is fine; delete feature branches afterwards.
 - Match the existing C style: 4-space indent, `snake_case`, short comments explaining the "why".
+
+## Verifying on hardware
+
+The board shows up as `/dev/cu.usbmodem1101`: `idf.py -p /dev/cu.usbmodem1101 build flash`.
+To read the boot log without an interactive monitor, open the port with pyserial from the IDF
+Python env, pulse RTS to reset, and read for ~20 s (status lines are logged by `modes` as
+`Status: ...`, the GitHub calendar as ASCII art by `github`). For timers, flash a short test
+value first (e.g. Pomodoro 2 / 1 min in `sdkconfig`) and restore it before committing.

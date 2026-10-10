@@ -85,8 +85,22 @@ Holding a button for 10 s erases the credentials and returns to setup mode.
 - [ ] **4. Extras** — settings page in station mode (brightness, username, modes on/off),
       mDNS `hubithab.local`, more modes (weather, messages), OTA updates, status LED.
 
+## Next up (Phase 4 order)
+
+1. Settings page in station mode at `http://hubithab.local` (mDNS): brightness, GitHub user /
+   token, time zone, modes on/off — without the 10 s factory reset. Makes the rest easy.
+2. OTA updates over Wi-Fi (the partition table already has `ota_0` / `ota_1`).
+3. Then: brightness (manual / night dimming), weather, messages from the web page, status LED,
+   second button.
+
+## Decisions so far
+
+- One button (BOOT) for now: click = next mode, hold = action, 3 s = reset (Pomodoro),
+  10 s = erase settings. A second button on GPIO7 is still an option.
+- GitHub token is optional: without it, followers / repos only; with it, the heatmap.
+  Fine-grained tokens miss contributions to organisation repositories — accepted.
+- 5x7 digits instead of 4x7 (they fit: `14:37` is 25 px wide).
+
 ## Open questions
 
-- One or two buttons? Which GPIOs?
 - Enclosure / diffuser (the original has a fabric-like front).
-- Should the GitHub token be required, or offer a token-free "basic stats" mode?
