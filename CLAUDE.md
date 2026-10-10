@@ -34,7 +34,10 @@ render into `fb`, never call `max7219_set_digit()` directly.
 - `main/main.c` — app: framebuffer, `fb_flush()`, non-blocking scroller (`scroller_next()` yields
   one column per call), modes (`display_mode_t`: `enter` / `render` / `on_button`), button callback
   → queue → display task. The display loop runs every `TICK_MS` and flushes only when `render()`
-  reports a change. New modes go into the `modes[]` table.
+  reports a change. New modes go into the `modes[]` table. Button events: `EV_CLICK` (next mode,
+  handled by the loop), `EV_LONG` (~1 s) and `EV_VERY_LONG` (3 s, timed by the loop from raw
+  press / release) go to the mode's `on_button`. The Pomodoro timer runs in the background
+  (`pomodoro_tick()`) and takes over the display when a phase ends.
 - `main/font8x8.h` — ASCII 0x20..0x7E 8x8 font (public domain font8x8_basic). Byte 0 = top row,
   bit 0 = leftmost pixel. The scroller trims empty glyph columns for proportional spacing.
 - `main/font_digits.h` — hand-drawn 5x7 digits plus `:` / `.` for the clock, stored by column

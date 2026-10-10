@@ -521,6 +521,13 @@ CONFIG_EXAMPLE_PIN_CS=5
 # end of Example configuration
 
 #
+# HubitHab
+#
+CONFIG_POMODORO_WORK_MIN=25
+CONFIG_POMODORO_BREAK_MIN=5
+# end of HubitHab
+
+#
 # Compiler options
 #
 CONFIG_COMPILER_OPTIMIZATION_DEBUG=y

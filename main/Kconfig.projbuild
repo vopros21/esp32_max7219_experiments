@@ -41,3 +41,15 @@ menu "Example configuration"
         help
             GPIO number of CS
 endmenu
+
+menu "HubitHab"
+    config POMODORO_WORK_MIN
+        int "Pomodoro work phase, minutes"
+        range 1 120
+        default 25
+
+    config POMODORO_BREAK_MIN
+        int "Pomodoro break phase, minutes"
+        range 1 60
+        default 5
+endmenu

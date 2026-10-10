@@ -34,6 +34,8 @@
 #define SPACE_WIDTH 3              // width of ' ' in columns
 
 #define TICK_MS 10                 // display loop period
+#define VERY_LONG_PRESS_MS 3000    // hold time for EV_VERY_LONG
+#define POMODORO_ALERT_MS 4000     // display flashes this long when a phase ends
 
 static const char *TAG = "8x8";
 
@@ -153,15 +155,18 @@ static uint8_t scroller_next(scroller_t *s)
 // and flushes fb only when render() reports a change.
 
 typedef enum {
-    EV_CLICK,
-    EV_LONG,
+    EV_CLICK,       // short press: next mode
+    EV_LONG,        // held ~1 s: mode action
+    EV_VERY_LONG,   // held VERY_LONG_PRESS_MS, comes after EV_LONG
+    EV_PRESS,       // raw press / release, used by the display loop to time EV_VERY_LONG
+    EV_RELEASE,
 } button_event_t;
 
 typedef struct {
     const char *name;
     void (*enter)(uint32_t now_ms);
     bool (*render)(uint32_t now_ms);           // returns true if fb changed
-    void (*on_button)(button_event_t ev);      // long press action, may be NULL
+    void (*on_button)(button_event_t ev);      // EV_LONG / EV_VERY_LONG, may be NULL
 } display_mode_t;
 
 // Text mode: scrolls one of MESSAGES, long press picks the next one.
@@ -190,6 +195,8 @@ static bool text_render(uint32_t now_ms)
 
 static void text_on_button(button_event_t ev)
 {
+    if (ev != EV_LONG)
+        return;
     text_index = (text_index + 1) % MESSAGE_COUNT;
     ESP_LOGI(TAG, "Message %u: %s", (unsigned)text_index, MESSAGES[text_index]);
     text_enter(xTaskGetTickCount() * portTICK_PERIOD_MS);
@@ -256,6 +263,8 @@ static bool clock_render(uint32_t now_ms)
 
 static void clock_on_button(button_event_t ev)
 {
+    if (ev != EV_LONG)
+        return;
     clock_show_date = !clock_show_date;
     clock_last_key = -1;
 }
@@ -274,9 +283,121 @@ static void set_initial_time(void)
     ESP_LOGI(TAG, "Time set from build: %s", BUILD_TIME);
 }
 
+// Pomodoro mode: MM:SS countdown with a progress bar on the bottom row. Work and
+// break phases alternate automatically. The timer runs in the background in any
+// mode; pomodoro_tick() reports a phase change so the display loop can jump here.
+// Hold = start / pause, keep holding to VERY_LONG_PRESS_MS = reset.
+
+#define POMODORO_WORK_MS  (CONFIG_POMODORO_WORK_MIN * 60 * 1000)
+#define POMODORO_BREAK_MS (CONFIG_POMODORO_BREAK_MIN * 60 * 1000)
+
+typedef enum {
+    POMO_IDLE,
+    POMO_RUNNING,
+    POMO_PAUSED,
+} pomo_state_t;
+
+static pomo_state_t pomo_state = POMO_IDLE;
+static bool pomo_break;                       // false = work phase
+static uint32_t pomo_left_ms = POMODORO_WORK_MS;  // remaining time unless running
+static uint32_t pomo_end_ms;                  // end of the phase while running
+static uint32_t pomo_alert_end_ms;
+static bool pomo_alert;
+
+static uint32_t pomo_phase_ms(void)
+{
+    return pomo_break ? POMODORO_BREAK_MS : POMODORO_WORK_MS;
+}
+
+static uint32_t pomo_remaining(uint32_t now_ms)
+{
+    if (pomo_state != POMO_RUNNING)
+        return pomo_left_ms;
+    int32_t left = (int32_t)(pomo_end_ms - now_ms);
+    return left > 0 ? left : 0;
+}
+
+// Called every loop iteration. Returns true when a phase has just ended.
+static bool pomodoro_tick(uint32_t now_ms)
+{
+    if (pomo_alert && (int32_t)(now_ms - pomo_alert_end_ms) >= 0)
+        pomo_alert = false;
+
+    if (pomo_state != POMO_RUNNING || (int32_t)(now_ms - pomo_end_ms) < 0)
+        return false;
+
+    pomo_break = !pomo_break;
+    pomo_end_ms = now_ms + pomo_phase_ms();
+    pomo_alert = true;
+    pomo_alert_end_ms = now_ms + POMODORO_ALERT_MS;
+    ESP_LOGI(TAG, "Pomodoro: %s", pomo_break ? "break" : "work");
+    return true;
+}
+
+static void pomodoro_enter(uint32_t now_ms)
+{
+}
+
+static bool pomodoro_render(uint32_t now_ms)
+{
+    uint8_t old[WIDTH];
+    memcpy(old, fb, sizeof(fb));
+
+    uint32_t left = pomo_remaining(now_ms);
+    uint32_t secs = (left + 999) / 1000;      // 25:00 at the start, 00:01 at the end
+    char buf[16];
+    snprintf(buf, sizeof(buf), "%02u:%02u", (unsigned)(secs / 60), (unsigned)(secs % 60));
+    draw_narrow(buf, true);
+
+    // Paused: digits blink, the bar stays.
+    if (pomo_state == POMO_PAUSED && now_ms % 1000 >= 500)
+        memset(fb, 0, sizeof(fb));
+
+    // Work: the bar fills up. Break: it empties.
+    uint32_t phase = pomo_phase_ms();
+    uint32_t done = phase - left;
+    int bar = pomo_break ? (int)(((uint64_t)left * WIDTH + phase - 1) / phase)
+                         : (int)((uint64_t)done * WIDTH / phase);
+    for (int x = 0; x < bar; x++)
+        fb[x] |= 0x80;
+
+    // Phase change: flash the whole display.
+    if (pomo_alert && now_ms % 500 < 250) {
+        for (int x = 0; x < WIDTH; x++)
+            fb[x] = ~fb[x];
+    }
+
+    return memcmp(old, fb, sizeof(fb)) != 0;
+}
+
+static void pomodoro_on_button(button_event_t ev)
+{
+    uint32_t now_ms = xTaskGetTickCount() * portTICK_PERIOD_MS;
+
+    if (ev == EV_VERY_LONG) {
+        pomo_state = POMO_IDLE;
+        pomo_break = false;
+        pomo_left_ms = POMODORO_WORK_MS;
+        pomo_alert = false;
+        ESP_LOGI(TAG, "Pomodoro: reset");
+        return;
+    }
+
+    if (pomo_state == POMO_RUNNING) {
+        pomo_left_ms = pomo_remaining(now_ms);
+        pomo_state = POMO_PAUSED;
+        ESP_LOGI(TAG, "Pomodoro: paused");
+    } else {
+        pomo_end_ms = now_ms + pomo_left_ms;
+        pomo_state = POMO_RUNNING;
+        ESP_LOGI(TAG, "Pomodoro: running");
+    }
+}
+
 static const display_mode_t modes[] = {
     { "Text", text_enter, text_render, text_on_button },
     { "Clock", clock_enter, clock_render, clock_on_button },
+    { "Pomodoro", pomodoro_enter, pomodoro_render, pomodoro_on_button },
 };
 #define MODE_COUNT (sizeof(modes) / sizeof(modes[0]))
 
@@ -293,6 +414,10 @@ static void on_button(button_t *btn, button_state_t state)
         ev = EV_CLICK;
     else if (state == BUTTON_PRESSED_LONG)
         ev = EV_LONG;
+    else if (state == BUTTON_PRESSED)
+        ev = EV_PRESS;
+    else if (state == BUTTON_RELEASED)
+        ev = EV_RELEASE;
     else
         return;
     xQueueSend(button_queue, &ev, 0);
@@ -333,21 +458,48 @@ void display_task(void *pvParameter)
     size_t mode = 0;
     modes[mode].enter(xTaskGetTickCount() * portTICK_PERIOD_MS);
 
+    bool pressed = false;
+    bool very_long_sent = false;
+    uint32_t press_ms = 0;
+
     while (1) {
         button_event_t ev;
+        uint32_t now_ms;
         if (xQueueReceive(button_queue, &ev, pdMS_TO_TICKS(TICK_MS))) {
-            if (ev == EV_CLICK) {
+            now_ms = xTaskGetTickCount() * portTICK_PERIOD_MS;
+            if (ev == EV_PRESS) {
+                pressed = true;
+                very_long_sent = false;
+                press_ms = now_ms;
+            } else if (ev == EV_RELEASE) {
+                pressed = false;
+            } else if (ev == EV_CLICK) {
                 mode = (mode + 1) % MODE_COUNT;
                 ESP_LOGI(TAG, "Click: mode %s", modes[mode].name);
-                modes[mode].enter(xTaskGetTickCount() * portTICK_PERIOD_MS);
+                modes[mode].enter(now_ms);
             } else {
                 ESP_LOGI(TAG, "Long press in mode %s", modes[mode].name);
                 if (modes[mode].on_button)
                     modes[mode].on_button(ev);
             }
         }
+        now_ms = xTaskGetTickCount() * portTICK_PERIOD_MS;
 
-        if (modes[mode].render(xTaskGetTickCount() * portTICK_PERIOD_MS))
+        if (pressed && !very_long_sent && now_ms - press_ms >= VERY_LONG_PRESS_MS) {
+            very_long_sent = true;
+            ESP_LOGI(TAG, "Very long press in mode %s", modes[mode].name);
+            if (modes[mode].on_button)
+                modes[mode].on_button(EV_VERY_LONG);
+        }
+
+        // A finished Pomodoro phase takes over the display from any mode.
+        if (pomodoro_tick(now_ms) && modes[mode].render != pomodoro_render) {
+            for (mode = 0; modes[mode].render != pomodoro_render; mode++)
+                ;
+            modes[mode].enter(now_ms);
+        }
+
+        if (modes[mode].render(now_ms))
             fb_flush(&dev);
     }
 }
