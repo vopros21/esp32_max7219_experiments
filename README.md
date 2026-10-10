@@ -50,7 +50,8 @@ Pomodoro alternates 25 min work / 5 min break (`idf.py menuconfig` → HubitHab)
 progress bar: it fills during work and empties during a break. When a phase ends the display jumps
 to Pomodoro from any mode and flashes.
 
-Until Wi-Fi time sync exists, the clock starts from the build time, so it resets on every reboot.
+The clock syncs over the internet (SNTP) and uses the time zone from the setup page. Without Wi-Fi it
+starts from the build time; a lit bottom-right pixel means the time has not been synced yet.
 
 Scroll speed is
 `CONFIG_EXAMPLE_SCROLL_DELAY` (`idf.py menuconfig` → Example configuration).

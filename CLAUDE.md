@@ -46,7 +46,9 @@ render into `fb`, never call `max7219_set_digit()` directly.
   `hubithab`. Configured = SSID set.
 - `main/wifi.c/.h` — `net_init()` (netifs, event loop, driver; idempotent), `wifi_connect()` blocks
   until the first IP or 3 failed attempts; after one success it reconnects forever. Updates the
-  status line. Hostname `hubithab`.
+  status line. Hostname `hubithab`. After the first IP it starts SNTP (`pool.ntp.org`, hourly);
+  the first sync calls `clock_set_synced()`. `main.c` applies the saved POSIX TZ before
+  `clock_set_initial_time()`, so the build-time guess is read in the right zone.
 - `main/portal.c/.h` — setup mode: open SoftAP `HubitHab-XXXX` (from MAC), DNS answers everything
   with 192.168.4.1, `esp_http_server` form at `/`, `/rescan`, `POST /save` → NVS → reboot; 404s
   redirect to the form (captive portal). Responses are chunked: an empty chunk ends the response,
@@ -57,7 +59,7 @@ render into `fb`, never call `max7219_set_digit()` directly.
 - `main/font_digits.h` — hand-drawn 5x7 digits plus `:` / `.` for the clock, stored by column
   (ready for `fb`), rows 0..6; the bottom row stays free.
 - `main/build_time.cmake` — generates `build/esp-idf/main/build_time.h` (`BUILD_TIME`) on every
-  build; the clock starts from it until SNTP exists. Hooked up in `main/CMakeLists.txt`.
+  build; the clock starts from it until SNTP syncs (bottom-right pixel lit until then). Hooked up in `main/CMakeLists.txt`.
 - `main/alphabet.h` — older hand-made `uint64_t` symbols (arrows, heart, sun, ...). Same orientation
   as the font (LSB byte = top row). Currently unused.
 - `components/` — vendored [esp-idf-lib](https://github.com/UncleRus/esp-idf-lib) drivers. Only

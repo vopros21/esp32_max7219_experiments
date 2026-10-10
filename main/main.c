@@ -1,4 +1,6 @@
 #include <stdio.h>
+#include <stdlib.h>
+#include <time.h>
 #include <freertos/FreeRTOS.h>
 #include <freertos/task.h>
 #include <esp_log.h>
@@ -81,8 +83,12 @@ static void display_task(void *pvParameter)
 
 void app_main()
 {
-    clock_set_initial_time();
     settings_init();
+    if (settings.tz[0]) {
+        setenv("TZ", settings.tz, 1);
+        tzset();
+    }
+    clock_set_initial_time();
 
     buttons_init();
     xTaskCreatePinnedToCore(display_task, "display", 4096, NULL, 5, NULL, APP_CPU_NUM);

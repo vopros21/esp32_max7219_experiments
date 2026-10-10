@@ -23,7 +23,11 @@ extern const size_t mode_pomodoro;   // index of Pomodoro in modes[]
 void text_set_status(const char *fmt, ...) __attribute__((format(printf, 1, 2)));
 
 // No network time yet: start the system clock from the build time.
+// Call after the time zone has been set.
 void clock_set_initial_time(void);
+
+// SNTP has set the time; hides the "not synced" pixel. Safe from any task.
+void clock_set_synced(void);
 
 // Runs the Pomodoro timer in any mode. Returns true when a phase has just ended.
 bool pomodoro_tick(uint32_t now_ms);

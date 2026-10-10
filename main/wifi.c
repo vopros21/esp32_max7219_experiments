@@ -6,6 +6,7 @@
 #include <esp_wifi.h>
 #include <esp_event.h>
 #include <esp_netif.h>
+#include <esp_netif_sntp.h>
 
 #include "wifi.h"
 #include "settings.h"
@@ -23,6 +24,18 @@ static esp_netif_t *sta_netif;
 static bool ever_connected;
 static int attempts;
 static uint8_t last_reason;
+static char ip_str[16];
+static bool time_synced;
+
+// Runs in the SNTP task, on the first sync and every CONFIG_LWIP_SNTP_UPDATE_DELAY after.
+static void on_time_sync(struct timeval *tv)
+{
+    if (time_synced)
+        return;
+    time_synced = true;
+    clock_set_synced();
+    text_set_status("Wi-Fi OK: %s, time synced", ip_str);
+}
 
 void net_init(void)
 {
@@ -79,10 +92,15 @@ static void on_event(void *arg, esp_event_base_t base, int32_t id, void *data)
         }
     } else if (base == IP_EVENT && id == IP_EVENT_STA_GOT_IP) {
         ip_event_got_ip_t *ev = data;
-        char ip[16];
-        snprintf(ip, sizeof(ip), IPSTR, IP2STR(&ev->ip_info.ip));
-        ever_connected = true;
-        text_set_status("Wi-Fi OK: %s", ip);
+        snprintf(ip_str, sizeof(ip_str), IPSTR, IP2STR(&ev->ip_info.ip));
+        text_set_status(time_synced ? "Wi-Fi OK: %s, time synced" : "Wi-Fi OK: %s", ip_str);
+        if (!ever_connected) {
+            ever_connected = true;
+            // Non-blocking: SNTP runs in the lwIP task and keeps resyncing hourly.
+            esp_sntp_config_t sntp = ESP_NETIF_SNTP_DEFAULT_CONFIG("pool.ntp.org");
+            sntp.sync_cb = on_time_sync;
+            esp_netif_sntp_init(&sntp);
+        }
         xEventGroupSetBits(events, BIT_CONNECTED);
     }
 }

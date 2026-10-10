@@ -88,8 +88,10 @@ static void text_on_button(button_event_t ev)
 }
 
 // Clock mode: HH:MM with a blinking colon, long press toggles the date (DD.MM).
-// Without Wi-Fi the time starts from the build time (see clock_set_initial_time()).
+// The time starts from the build time (see clock_set_initial_time()) until SNTP
+// syncs it; until then the bottom-right pixel is lit as a "time is a guess" hint.
 
+static volatile bool clock_synced;      // set from the SNTP task
 static bool clock_show_date;
 static int clock_last_key;   // what is on the display now, -1 = redraw
 
@@ -108,6 +110,7 @@ static bool clock_render(uint32_t now_ms)
     bool colon = tv.tv_usec < 500000;
     int key = clock_show_date ? 10000 + tm.tm_mday * 100 + tm.tm_mon
                               : (tm.tm_hour * 60 + tm.tm_min) * 2 + colon;
+    key = key * 2 + clock_synced;
     if (key == clock_last_key)
         return false;
     clock_last_key = key;
@@ -118,7 +121,14 @@ static bool clock_render(uint32_t now_ms)
     else
         snprintf(buf, sizeof(buf), "%02d:%02d", tm.tm_hour, tm.tm_min);
     draw_narrow(buf, colon);
+    if (!clock_synced)
+        fb[WIDTH - 1] |= 0x80;
     return true;
+}
+
+void clock_set_synced(void)
+{
+    clock_synced = true;
 }
 
 static void clock_on_button(button_event_t ev)
@@ -129,8 +139,9 @@ static void clock_on_button(button_event_t ev)
     clock_last_key = -1;
 }
 
-// No network time yet: start the system clock from the build time. It is local
-// time stored as if it were UTC (no time zone is set), which is fine for display.
+// No network time yet: start the system clock from the build time. BUILD_TIME is
+// the build machine's local time; mktime() reads it in the TZ set by main.c (UTC
+// if none), so this is right as long as the board and the build share a zone.
 void clock_set_initial_time(void)
 {
     struct tm tm = { 0 };
