@@ -10,12 +10,13 @@
 #include "modes.h"
 #include "display.h"
 #include "build_time.h"
+#include "github.h"
 
 #define POMODORO_ALERT_MS 4000     // display flashes this long when a phase ends
 
 static const char *TAG = "modes";
 
-// Text mode: scrolls the status line. Other tasks (Wi-Fi, setup) update it with
+// Status mode: scrolls the status line. Other tasks (Wi-Fi, setup) update it with
 // text_set_status(); the new text is picked up by the display task when the
 // current pass starts over, or right away on a long press.
 
@@ -264,10 +265,152 @@ static void pomodoro_on_button(button_event_t ev)
     }
 }
 
+// GitHub mode: contribution heatmap, one column per week (oldest left), one row
+// per weekday (Sunday on top). Today's pixel blinks while it has no contributions;
+// the bottom row marks the first week of each month. Every GH_STATS_EVERY_MS the
+// stats scroll by once. Long press: stats only. Without a token (no calendar)
+// only the stats scroll.
+
+#define GH_STATS_EVERY_MS 60000
+#define GH_SYNC_MS 1000            // how often to copy fresh data from github.c
+
+static github_data_t gh;
+static bool gh_month[GH_WEEKS];    // bottom-row markers, computed on load
+static uint32_t gh_synced_ms;
+static bool gh_stats_only;
+static bool gh_scrolling;          // stats text is moving across the display
+static uint32_t gh_next_stats_ms;
+static uint32_t gh_last_step_ms;
+static scroller_t gh_scroller;
+static char gh_text[96];
+
+// Copies fresh data and marks the week whose Sunday is among the first 7 days
+// of a month. Done here, not per frame: mktime() with a TZ is not cheap.
+static void gh_load(void)
+{
+    time_t old_updated = gh.updated;
+    github_get(&gh);
+    if (gh.updated == old_updated && gh.updated)
+        return;
+    for (int w = 0; w < GH_WEEKS; w++) {
+        struct tm tm;
+        localtime_r(&gh.start, &tm);
+        tm.tm_mday += w * 7;
+        tm.tm_hour = 12;           // stay clear of DST edges
+        tm.tm_isdst = -1;
+        mktime(&tm);
+        gh_month[w] = tm.tm_mday <= 7;
+    }
+}
+
+static void gh_make_text(void)
+{
+    if (!gh.valid)
+        snprintf(gh_text, sizeof(gh_text), "GitHub: loading...");
+    else if (gh.has_calendar)
+        snprintf(gh_text, sizeof(gh_text), "streak %d - today %d - %d followers",
+                 gh.streak, gh.today, gh.followers);
+    else
+        snprintf(gh_text, sizeof(gh_text), "%d followers - %d repos", gh.followers, gh.repos);
+}
+
+static bool gh_heatmap_shown(void)
+{
+    return gh.valid && gh.has_calendar && !gh_stats_only;
+}
+
+static void gh_start_scroll(uint32_t now_ms)
+{
+    gh_make_text();
+    scroller_start(&gh_scroller, gh_text);
+    gh_scrolling = true;
+    gh_last_step_ms = now_ms;
+}
+
+static void github_enter(uint32_t now_ms)
+{
+    gh_load();
+    gh_synced_ms = now_ms;
+    gh_scrolling = false;
+    gh_next_stats_ms = now_ms + GH_STATS_EVERY_MS;
+    memset(fb, 0, sizeof(fb));
+    if (!gh_heatmap_shown())
+        gh_start_scroll(now_ms);
+}
+
+static void draw_heatmap(uint32_t now_ms)
+{
+    memset(fb, 0, sizeof(fb));
+    for (int w = 0; w < GH_WEEKS; w++) {
+        for (int d = 0; d < 7; d++) {
+            uint16_t c = gh.days[w][d];
+            if (c != 0 && c != GH_NO_DAY)
+                fb[w] |= 1 << d;
+        }
+        if (gh_month[w])
+            fb[w] |= 0x80;
+    }
+
+    if (gh.today == 0 && gh.today_week >= 0 && now_ms % 2000 < 1000)
+        fb[gh.today_week] |= 1 << gh.today_day;
+}
+
+static bool github_render(uint32_t now_ms)
+{
+    if (now_ms - gh_synced_ms >= GH_SYNC_MS) {
+        gh_synced_ms = now_ms;
+        bool had_heatmap = gh_heatmap_shown();
+        gh_load();
+        if (gh_heatmap_shown() != had_heatmap)
+            github_enter(now_ms);
+    }
+
+    if (gh_scrolling) {
+        if (now_ms - gh_last_step_ms < CONFIG_EXAMPLE_SCROLL_DELAY)
+            return false;
+        gh_last_step_ms = now_ms;
+        memmove(fb, fb + 1, WIDTH - 1);
+        fb[WIDTH - 1] = scroller_next(&gh_scroller);
+
+        // One pass done: the text has wrapped and its trailing blanks pushed it out.
+        if (gh_scroller.p == gh_scroller.text && !gh_scroller.glyph && gh_scroller.blank == 0) {
+            if (gh_heatmap_shown()) {
+                gh_scrolling = false;
+                gh_next_stats_ms = now_ms + GH_STATS_EVERY_MS;
+            } else {
+                gh_start_scroll(now_ms);   // refresh the numbers for the next pass
+            }
+        }
+        return true;
+    }
+
+    if ((int32_t)(now_ms - gh_next_stats_ms) >= 0) {
+        gh_start_scroll(now_ms);
+        return false;
+    }
+
+    uint8_t old[WIDTH];
+    memcpy(old, fb, sizeof(fb));
+    draw_heatmap(now_ms);
+    return memcmp(old, fb, sizeof(fb)) != 0;
+}
+
+static void github_on_button(button_event_t ev)
+{
+    if (ev != EV_LONG)
+        return;
+    gh_stats_only = !gh_stats_only;
+    ESP_LOGI(TAG, "GitHub: %s", gh_stats_only ? "stats only" : "heatmap");
+    github_enter(xTaskGetTickCount() * portTICK_PERIOD_MS);
+}
+
 const display_mode_t modes[] = {
-    { "Text", text_enter, text_render, text_on_button },
+    { "GitHub", github_enter, github_render, github_on_button },
     { "Clock", clock_enter, clock_render, clock_on_button },
     { "Pomodoro", pomodoro_enter, pomodoro_render, pomodoro_on_button },
+    { "Status", text_enter, text_render, text_on_button },
 };
 const size_t mode_count = sizeof(modes) / sizeof(modes[0]);
+const size_t mode_github = 0;
 const size_t mode_pomodoro = 2;
+const size_t mode_status = 3;

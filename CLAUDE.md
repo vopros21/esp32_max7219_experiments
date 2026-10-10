@@ -39,8 +39,10 @@ render into `fb`, never call `max7219_set_digit()` directly.
   non-blocking scroller (`scroller_next()` yields one column per call), `draw_narrow()`.
 - `main/buttons.c/.h` — BOOT button via `components/button`, callback → queue.
 - `main/modes.c/.h` — `display_mode_t` (`enter` / `render` / `on_button`) and the `modes[]` table:
-  Text (scrolls the status line; `text_set_status()` is safe from any task, the new text is taken
-  between passes), Clock, Pomodoro. The Pomodoro timer runs in the background
+  GitHub (heatmap: column = week, row = weekday, bottom row = month starts, today blinks while 0;
+  stats scroll once a minute, long press = stats only), Clock, Pomodoro, Status (scrolls the
+  status line; `text_set_status()` is safe from any task, the new text is taken between passes).
+  `main.c` starts on Status and switches to GitHub after the first successful fetch. The Pomodoro timer runs in the background
   (`pomodoro_tick()`) and takes over the display when a phase ends.
 - `main/settings.c/.h` — `settings_t` (Wi-Fi, GitHub user / token, POSIX TZ) in NVS namespace
   `hubithab`. Configured = SSID set.
@@ -53,7 +55,8 @@ render into `fb`, never call `max7219_set_digit()` directly.
   on error. Token set: GraphQL `contributionsCollection` from the Sunday 31 weeks ago → 32x7
   `days[week][weekday]` (Sunday = 0, `GH_NO_DAY` after today), today, streak, followers. No token:
   REST `/users/<name>` (followers, public repos). `github_get()` copies under a mutex. Uses
-  `esp_http_client` + `esp_crt_bundle`, cJSON. Never log the token.
+  `esp_http_client` + `esp_crt_bundle`, cJSON. Never log the token. Fine-grained tokens only see
+  the user's own repositories: contributions to organisation repos are missing (accepted).
 - `main/portal.c/.h` — setup mode: open SoftAP `HubitHab-XXXX` (from MAC), DNS answers everything
   with 192.168.4.1, `esp_http_server` form at `/`, `/rescan`, `POST /save` → NVS → reboot; 404s
   redirect to the form (captive portal). Responses are chunked: an empty chunk ends the response,

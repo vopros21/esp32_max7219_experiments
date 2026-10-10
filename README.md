@@ -42,11 +42,16 @@ GitHub data refreshes every 15 minutes. The contribution calendar needs a token:
 fine-grained token (GitHub → Settings → Developer settings) with public repositories read-only and
 no extra permissions. Without a token only followers and public repos are shown.
 
+GitHub mode shows the last 32 weeks as a heatmap: one column per week (oldest on the left), one row
+per weekday (Sunday on top), a dot on the bottom row under the first week of each month. Today's
+pixel blinks until you have contributed. Once a minute the streak, today's count and followers
+scroll by. Contributions to organisation repositories are not included with a fine-grained token.
+
 ## Usage
 
-- Click BOOT: next mode (Text, Clock, Pomodoro).
-- Hold BOOT ~1 s: mode action — Text: next message, Clock: toggle time / date,
-  Pomodoro: start / pause.
+- Click BOOT: next mode (GitHub, Clock, Pomodoro, Status).
+- Hold BOOT ~1 s: mode action — GitHub: heatmap / stats only, Clock: toggle time / date,
+  Pomodoro: start / pause, Status: restart the scroll.
 - Hold BOOT 3 s in Pomodoro: reset.
 - Hold BOOT 10 s: erase settings and restart into setup.
 

@@ -33,6 +33,11 @@ bool github_get(github_data_t *out)
     return out->valid;
 }
 
+bool github_ready(void)
+{
+    return data.valid;  // only ever goes false -> true
+}
+
 // ---------------------------------------------------------------------------
 // HTTP
 
@@ -173,7 +178,8 @@ static const char *fetch_calendar(github_data_t *out)
     tm.tm_hour = tm.tm_min = tm.tm_sec = 0;
     tm.tm_isdst = -1;
     char from[24], to[24];
-    iso_utc(mktime(&tm), from, sizeof(from));
+    out->start = mktime(&tm);
+    iso_utc(out->start, from, sizeof(from));
     iso_utc(now, to, sizeof(to));
 
     cJSON *req = cJSON_CreateObject();
@@ -244,6 +250,8 @@ static const char *fetch_calendar(github_data_t *out)
         // Today is the last day returned. A streak survives a quiet today until the
         // day is over, like on GitHub.
         out->today = last_w >= 0 ? out->days[last_w][last_d] : 0;
+        out->today_week = last_w;
+        out->today_day = last_d;
         out->streak = 0;
         bool skip_today = out->today == 0;
         for (int w = last_w; w >= 0; w--) {

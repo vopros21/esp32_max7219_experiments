@@ -28,7 +28,10 @@ static void display_task(void *pvParameter)
 {
     display_init();
 
-    size_t mode = 0;
+    // Start on the status line (connection progress); GitHub takes over once
+    // the first fetch has succeeded.
+    size_t mode = mode_status;
+    bool github_shown = false;
     modes[mode].enter(xTaskGetTickCount() * portTICK_PERIOD_MS);
 
     bool pressed = false;
@@ -69,6 +72,12 @@ static void display_task(void *pvParameter)
             ESP_LOGW(TAG, "Button held for 10 s: erasing settings, restarting");
             settings_erase();
             esp_restart();
+        }
+
+        if (!github_shown && github_ready()) {
+            github_shown = true;
+            mode = mode_github;
+            modes[mode].enter(now_ms);
         }
 
         // A finished Pomodoro phase takes over the display from any mode.

@@ -79,9 +79,9 @@ Holding a button for 10 s erases the credentials and returns to setup mode.
   - [x] SoftAP + captive portal + NVS settings, 10 s hold = reset to setup.
   - [x] Station mode with fallback to setup, show IP.
   - [x] SNTP + time zone.
-- [ ] **3. GitHub**
+- [x] **3. GitHub**
   - [x] HTTPS fetch (GraphQL with token, REST without), JSON parsing, polling, status line.
-  - [ ] GitHub mode: heatmap + stats rendering.
+  - [x] GitHub mode: heatmap + stats rendering.
 - [ ] **4. Extras** — settings page in station mode (brightness, username, modes on/off),
       mDNS `hubithab.local`, more modes (weather, messages), OTA updates, status LED.
 
