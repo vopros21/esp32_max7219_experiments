@@ -1,7 +1,7 @@
 # Project context
 
 Desk display built from an ESP32-S3-Zero and four cascaded MAX7219 8x8 LED modules (8x32 pixels).
-Today it scrolls text. The goal is a DeskHub-style gadget (GitHub stats, clock, Pomodoro, ...),
+Working title: HubitHab. Goal: a desk gadget with modes (GitHub stats, clock, Pomodoro, ...),
 see `ROADMAP.md`.
 
 ## Hardware

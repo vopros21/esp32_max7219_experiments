@@ -1,6 +1,6 @@
 # Roadmap
 
-Goal: a DeskHub-style desk gadget (inspiration: https://x.com/_MaxBlade). Out of the box it starts
+Goal: a desk gadget, working title HubitHab (inspiration: https://x.com/_MaxBlade). Out of the box it starts
 its own Wi-Fi with a setup page, the user enters their Wi-Fi and GitHub details, and then it shows
 GitHub stats. Unlike the original, buttons switch between several modes.
 
@@ -10,7 +10,7 @@ GitHub stats. Unlike the original, buttons switch between several modes.
 Power on
   │
   ├─ Wi-Fi credentials in NVS? ──no──► Setup mode
-  │                                     • SoftAP "DeskHub-XXXX"
+  │                                     • SoftAP "HubitHab-XXXX"
   │                                     • DNS server answers every name with 192.168.4.1
   │                                       → phone opens the captive portal automatically
   │                                     • Form: Wi-Fi SSID, password, GitHub username,
@@ -20,7 +20,7 @@ Power on
   └─ yes ─► Connect as station
               ├─ 3 failures ─► back to setup mode
               └─ OK ─► SNTP time sync → normal mode
-                        (settings page at http://deskhub.local)
+                        (settings page at http://hubithab.local)
 ```
 
 Holding a button for 10 s erases the credentials and returns to setup mode.
@@ -78,7 +78,7 @@ Holding a button for 10 s erases the credentials and returns to setup mode.
       on long hold, SNTP + time zone.
 - [ ] **3. GitHub** — HTTPS fetch, JSON parsing, heatmap + stats rendering, polling.
 - [ ] **4. Extras** — settings page in station mode (brightness, username, modes on/off),
-      mDNS `deskhub.local`, more modes (weather, messages), OTA updates, status LED.
+      mDNS `hubithab.local`, more modes (weather, messages), OTA updates, status LED.
 
 ## Open questions
 

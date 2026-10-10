@@ -1,7 +1,7 @@
 # ESP32-S3 8x32 LED matrix
 
 Scrolling text on four cascaded MAX7219 8x8 LED modules driven by an ESP32-S3-Zero, on the way to a
-DeskHub-style desk gadget (GitHub stats, clock, Pomodoro). See [ROADMAP.md](ROADMAP.md) for plans.
+desk gadget (working title HubitHab: GitHub stats, clock, Pomodoro). See [ROADMAP.md](ROADMAP.md) for plans.
 
 ## Hardware
 
