@@ -39,7 +39,7 @@ render into `fb`, never call `max7219_set_digit()` directly.
   non-blocking scroller (`scroller_next()` yields one column per call), `draw_narrow()`.
 - `main/buttons.c/.h` — BOOT button via `components/button`, callback → queue.
 - `main/modes.c/.h` — `display_mode_t` (`enter` / `render` / `on_button`) and the `modes[]` table:
-  GitHub (heatmap: column = week, row = weekday, bottom row = month starts, today blinks while 0;
+  GitHub (heatmap: column = week, row = weekday, bottom row = week containing the 1st of a month, today blinks while 0;
   stats scroll once a minute, long press = stats only), Clock, Pomodoro, Status (scrolls the
   status line; `text_set_status()` is safe from any task, the new text is taken between passes).
   `main.c` starts on Status and switches to GitHub after the first successful fetch. The Pomodoro timer runs in the background

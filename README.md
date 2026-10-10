@@ -64,7 +64,7 @@ fine-grained token (GitHub → Settings → Developer settings) with public repo
 no extra permissions. Without a token only followers and public repos are shown.
 
 GitHub mode shows the last 32 weeks as a heatmap: one column per week (oldest on the left), one row
-per weekday (Sunday on top), a dot on the bottom row under the first week of each month. Today's
+per weekday (Sunday on top), a dot on the bottom row under the week containing the 1st of each month. Today's
 pixel blinks until you have contributed. Once a minute the streak, today's count and followers
 scroll by. Contributions to organisation repositories are not included with a fine-grained token.
 

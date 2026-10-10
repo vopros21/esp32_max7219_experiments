@@ -267,7 +267,7 @@ static void pomodoro_on_button(button_event_t ev)
 
 // GitHub mode: contribution heatmap, one column per week (oldest left), one row
 // per weekday (Sunday on top). Today's pixel blinks while it has no contributions;
-// the bottom row marks the first week of each month. Every GH_STATS_EVERY_MS the
+// the bottom row marks the week containing the 1st of each month. Every GH_STATS_EVERY_MS the
 // stats scroll by once. Long press: stats only. Without a token (no calendar)
 // only the stats scroll.
 
@@ -284,8 +284,9 @@ static uint32_t gh_last_step_ms;
 static scroller_t gh_scroller;
 static char gh_text[96];
 
-// Copies fresh data and marks the week whose Sunday is among the first 7 days
-// of a month. Done here, not per frame: mktime() with a TZ is not cheap.
+// Copies fresh data and marks the week that contains the 1st of a month, i.e.
+// whose Saturday is among the first 7 days of a month. Done here, not per frame:
+// mktime() with a TZ is not cheap.
 static void gh_load(void)
 {
     time_t old_updated = gh.updated;
@@ -295,7 +296,7 @@ static void gh_load(void)
     for (int w = 0; w < GH_WEEKS; w++) {
         struct tm tm;
         localtime_r(&gh.start, &tm);
-        tm.tm_mday += w * 7;
+        tm.tm_mday += w * 7 + 6;   // Saturday of week w
         tm.tm_hour = 12;           // stay clear of DST edges
         tm.tm_isdst = -1;
         mktime(&tm);
