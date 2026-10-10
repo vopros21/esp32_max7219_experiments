@@ -77,7 +77,7 @@ Holding a button for 10 s erases the credentials and returns to setup mode.
 - [ ] **2. Provisioning**
   - [x] Split `main.c` into modules, OTA-ready partition table.
   - [x] SoftAP + captive portal + NVS settings, 10 s hold = reset to setup.
-  - [ ] Station mode with fallback to setup, show IP.
+  - [x] Station mode with fallback to setup, show IP.
   - [ ] SNTP + time zone.
 - [ ] **3. GitHub** — HTTPS fetch, JSON parsing, heatmap + stats rendering, polling.
 - [ ] **4. Extras** — settings page in station mode (brightness, username, modes on/off),

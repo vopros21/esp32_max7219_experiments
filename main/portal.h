@@ -7,4 +7,8 @@
 // Access point name, derived from the MAC. Valid before portal_start().
 const char *portal_ap_ssid(void);
 
-void portal_start(void);
+#include <stdbool.h>
+
+// after_failure: the saved Wi-Fi could not be joined. The driver is already
+// running, and the board restarts after 5 min without a client to retry.
+void portal_start(bool after_failure);

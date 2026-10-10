@@ -10,12 +10,15 @@
 #include <esp_netif.h>
 #include <esp_system.h>
 #include <esp_http_server.h>
+#include <esp_timer.h>
 #include <dns_server.h>
 
 #include "portal.h"
 #include "settings.h"
+#include "wifi.h"
 
 #define MAX_SCAN 16
+#define RETRY_AFTER_US (5 * 60 * 1000000LL)  // fallback setup: retry saved Wi-Fi after 5 min
 
 static const char *TAG = "portal";
 
@@ -338,20 +341,28 @@ static void start_webserver(void)
     httpd_register_err_handler(server, HTTPD_404_NOT_FOUND, redirect_handler);
 }
 
-void portal_start(void)
+// Fallback setup only: if nobody is on the setup network, restart and try the saved
+// Wi-Fi again (the router may simply have been off). Otherwise check again later.
+static void retry_timer_cb(void *arg)
+{
+    wifi_sta_list_t list;
+    if (esp_wifi_ap_get_sta_list(&list) == ESP_OK && list.num > 0) {
+        ESP_LOGI(TAG, "Setup page in use, not restarting yet");
+        esp_timer_start_once(*(esp_timer_handle_t *)arg, RETRY_AFTER_US);
+        return;
+    }
+    ESP_LOGI(TAG, "No one is setting up, restarting to retry Wi-Fi");
+    esp_restart();
+}
+
+void portal_start(bool after_failure)
 {
     // Redirected captive-portal traffic produces a lot of harmless warnings.
     esp_log_level_set("httpd_uri", ESP_LOG_ERROR);
     esp_log_level_set("httpd_txrx", ESP_LOG_ERROR);
     esp_log_level_set("httpd_parse", ESP_LOG_ERROR);
 
-    ESP_ERROR_CHECK(esp_netif_init());
-    ESP_ERROR_CHECK(esp_event_loop_create_default());
-    esp_netif_create_default_wifi_ap();
-    esp_netif_create_default_wifi_sta();  // needed for scanning
-
-    wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT();
-    ESP_ERROR_CHECK(esp_wifi_init(&cfg));
+    net_init();
 
     wifi_config_t ap = {
         .ap = {
@@ -362,9 +373,12 @@ void portal_start(void)
     strlcpy((char *)ap.ap.ssid, portal_ap_ssid(), sizeof(ap.ap.ssid));
     ap.ap.ssid_len = strlen(portal_ap_ssid());
 
+    // APSTA: the station side is used for scanning. After a failed connect the
+    // driver is already running in STA mode; adding the AP is enough.
     ESP_ERROR_CHECK(esp_wifi_set_mode(WIFI_MODE_APSTA));
     ESP_ERROR_CHECK(esp_wifi_set_config(WIFI_IF_AP, &ap));
-    ESP_ERROR_CHECK(esp_wifi_start());
+    if (!after_failure)
+        ESP_ERROR_CHECK(esp_wifi_start());
     ESP_LOGI(TAG, "Access point '%s' started, setup page at http://192.168.4.1", ap_ssid);
 
     scan_networks();
@@ -372,4 +386,15 @@ void portal_start(void)
 
     dns_server_config_t dns = DNS_SERVER_CONFIG_SINGLE("*", "WIFI_AP_DEF");
     start_dns_server(&dns);
+
+    if (after_failure) {
+        static esp_timer_handle_t timer;
+        const esp_timer_create_args_t args = {
+            .callback = retry_timer_cb,
+            .arg = &timer,
+            .name = "setup_retry",
+        };
+        ESP_ERROR_CHECK(esp_timer_create(&args, &timer));
+        ESP_ERROR_CHECK(esp_timer_start_once(timer, RETRY_AFTER_US));
+    }
 }

@@ -39,14 +39,19 @@ render into `fb`, never call `max7219_set_digit()` directly.
   non-blocking scroller (`scroller_next()` yields one column per call), `draw_narrow()`.
 - `main/buttons.c/.h` — BOOT button via `components/button`, callback → queue.
 - `main/modes.c/.h` — `display_mode_t` (`enter` / `render` / `on_button`) and the `modes[]` table:
-  Text (messages set by `main.c`), Clock, Pomodoro. The Pomodoro timer runs in the background
+  Text (scrolls the status line; `text_set_status()` is safe from any task, the new text is taken
+  between passes), Clock, Pomodoro. The Pomodoro timer runs in the background
   (`pomodoro_tick()`) and takes over the display when a phase ends.
 - `main/settings.c/.h` — `settings_t` (Wi-Fi, GitHub user / token, POSIX TZ) in NVS namespace
   `hubithab`. Configured = SSID set.
+- `main/wifi.c/.h` — `net_init()` (netifs, event loop, driver; idempotent), `wifi_connect()` blocks
+  until the first IP or 3 failed attempts; after one success it reconnects forever. Updates the
+  status line. Hostname `hubithab`.
 - `main/portal.c/.h` — setup mode: open SoftAP `HubitHab-XXXX` (from MAC), DNS answers everything
   with 192.168.4.1, `esp_http_server` form at `/`, `/rescan`, `POST /save` → NVS → reboot; 404s
   redirect to the form (captive portal). Responses are chunked: an empty chunk ends the response,
-  so `send()` skips empty strings.
+  so `send()` skips empty strings. `portal_start(true)` = fallback after a failed connect: form is
+  pre-filled, and the board restarts after 5 min if no client is on the AP.
 - `main/font8x8.h` — ASCII 0x20..0x7E 8x8 font (public domain font8x8_basic). Byte 0 = top row,
   bit 0 = leftmost pixel. The scroller trims empty glyph columns for proportional spacing.
 - `main/font_digits.h` — hand-drawn 5x7 digits plus `:` / `.` for the clock, stored by column

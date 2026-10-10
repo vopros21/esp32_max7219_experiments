@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdarg.h>
 #include <string.h>
 #include <time.h>
 #include <sys/time.h>
@@ -14,18 +15,50 @@
 
 static const char *TAG = "modes";
 
-// Text mode: scrolls one of the messages, long press picks the next one.
+// Text mode: scrolls the status line. Other tasks (Wi-Fi, setup) update it with
+// text_set_status(); the new text is picked up by the display task when the
+// current pass starts over, or right away on a long press.
 
-static const char *const *text_messages;
-static size_t text_count;
+#define STATUS_LEN 200
+
+static portMUX_TYPE status_mux = portMUX_INITIALIZER_UNLOCKED;
+static char status_pending[STATUS_LEN];
+static bool status_dirty;
+static char status_shown[STATUS_LEN];   // only touched by the display task
+
 static scroller_t text_scroller;
-static size_t text_index;
 static uint32_t text_last_ms;
+
+void text_set_status(const char *fmt, ...)
+{
+    char buf[STATUS_LEN];
+    va_list args;
+    va_start(args, fmt);
+    vsnprintf(buf, sizeof(buf), fmt, args);
+    va_end(args);
+    ESP_LOGI(TAG, "Status: %s", buf);
+
+    taskENTER_CRITICAL(&status_mux);
+    memcpy(status_pending, buf, sizeof(buf));
+    status_dirty = true;
+    taskEXIT_CRITICAL(&status_mux);
+}
+
+static void take_status(void)
+{
+    taskENTER_CRITICAL(&status_mux);
+    if (status_dirty) {
+        memcpy(status_shown, status_pending, sizeof(status_shown));
+        status_dirty = false;
+    }
+    taskEXIT_CRITICAL(&status_mux);
+}
 
 static void text_enter(uint32_t now_ms)
 {
+    take_status();
     memset(fb, 0, sizeof(fb));
-    scroller_start(&text_scroller, text_count ? text_messages[text_index] : "");
+    scroller_start(&text_scroller, status_shown);
     text_last_ms = now_ms;
 }
 
@@ -35,27 +68,23 @@ static bool text_render(uint32_t now_ms)
         return false;
     text_last_ms = now_ms;
 
+    // Switch to a new status between passes: at the start of the text, after the
+    // trailing blank columns have pushed the old text out.
+    if (status_dirty && text_scroller.p == text_scroller.text && !text_scroller.glyph &&
+        text_scroller.blank == 0) {
+        take_status();
+        scroller_start(&text_scroller, status_shown);
+    }
+
     memmove(fb, fb + 1, WIDTH - 1);
     fb[WIDTH - 1] = scroller_next(&text_scroller);
     return true;
 }
 
-void text_set_messages(const char *const *messages, size_t count)
-{
-    text_messages = messages;
-    text_count = count;
-    text_index = 0;
-}
-
 static void text_on_button(button_event_t ev)
 {
-    if (ev != EV_LONG)
-        return;
-    if (!text_count)
-        return;
-    text_index = (text_index + 1) % text_count;
-    ESP_LOGI(TAG, "Message %u: %s", (unsigned)text_index, text_messages[text_index]);
-    text_enter(xTaskGetTickCount() * portTICK_PERIOD_MS);
+    if (ev == EV_LONG)
+        text_enter(xTaskGetTickCount() * portTICK_PERIOD_MS);
 }
 
 // Clock mode: HH:MM with a blinking colon, long press toggles the date (DD.MM).

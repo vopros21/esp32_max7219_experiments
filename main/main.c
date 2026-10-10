@@ -9,6 +9,7 @@
 #include "modes.h"
 #include "settings.h"
 #include "portal.h"
+#include "wifi.h"
 
 #ifndef APP_CPU_NUM
 #define APP_CPU_NUM PRO_CPU_NUM
@@ -19,9 +20,6 @@
 #define FACTORY_RESET_MS 10000     // hold time that erases settings and reboots
 
 static const char *TAG = "main";
-
-static char status_message[200];
-static const char *const messages[] = { status_message };
 
 static void display_task(void *pvParameter)
 {
@@ -86,22 +84,19 @@ void app_main()
     clock_set_initial_time();
     settings_init();
 
-    bool setup = !settings_configured();
-    if (setup) {
-        snprintf(status_message, sizeof(status_message),
-                 "Setup: join Wi-Fi %s, open 192.168.4.1", portal_ap_ssid());
-    } else {
-        // Wi-Fi connection comes in the next step; for now show what was saved.
-        snprintf(status_message, sizeof(status_message),
-                 "Saved: Wi-Fi %s, GitHub %s, token %s. Hold BOOT 10 s for setup.",
-                 settings.ssid, settings.gh_user[0] ? settings.gh_user : "-",
-                 settings.gh_token[0] ? "yes" : "no");
-    }
-    text_set_messages(messages, 1);
-
     buttons_init();
     xTaskCreatePinnedToCore(display_task, "display", 4096, NULL, 5, NULL, APP_CPU_NUM);
 
-    if (setup)
-        portal_start();
+    if (!settings_configured()) {
+        text_set_status("Setup: join Wi-Fi %s, open 192.168.4.1", portal_ap_ssid());
+        portal_start(false);
+        return;
+    }
+
+    char why[32];
+    if (!wifi_connect(why, sizeof(why))) {
+        text_set_status("Can't join %s (%s). Setup: join Wi-Fi %s, open 192.168.4.1",
+                        settings.ssid, why, portal_ap_ssid());
+        portal_start(true);
+    }
 }

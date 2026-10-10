@@ -19,9 +19,8 @@ extern const display_mode_t modes[];
 extern const size_t mode_count;
 extern const size_t mode_pomodoro;   // index of Pomodoro in modes[]
 
-// Messages for the Text mode; a long press switches to the next one.
-// The strings must stay valid for the lifetime of the app.
-void text_set_messages(const char *const *messages, size_t count);
+// Status line shown by the Text mode. Safe to call from any task.
+void text_set_status(const char *fmt, ...) __attribute__((format(printf, 1, 2)));
 
 // No network time yet: start the system clock from the build time.
 void clock_set_initial_time(void);

@@ -34,6 +34,10 @@ On first boot (or after holding BOOT for 10 s) the board starts an open Wi-Fi ne
 automatically (otherwise go to http://192.168.4.1). Enter Wi-Fi, GitHub username, optional
 read-only GitHub token and time zone, then save; the board restarts with the new settings.
 
+With saved settings it joins your Wi-Fi and shows its IP address. If the first three attempts fail
+(wrong password, network not found) it opens the setup network again with the form pre-filled, and
+restarts after 5 minutes to retry if nobody uses it. Later drops are retried in the background.
+
 ## Usage
 
 - Click BOOT: next mode (Text, Clock, Pomodoro).
