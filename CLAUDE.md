@@ -8,7 +8,8 @@ see `ROADMAP.md`.
 
 - Board: Waveshare ESP32-S3-Zero (ESP32-S3FH4R2: 4 MB flash, 2 MB PSRAM — PSRAM not enabled in `sdkconfig`).
 - Display: 4 x MAX7219 modules, SPI. Pins: MOSI = GPIO4, CS = GPIO5, CLK = GPIO6.
-- Button: BOOT button on GPIO0 (input, internal pull-up), currently only polled and printed.
+- Button: BOOT button on GPIO0 (input, internal pull-up), handled by `components/button`
+  (click = next mode, long press = mode action).
 - Onboard WS2812 RGB LED on GPIO21 (unused).
 - Pins to avoid for new inputs: 0/3/45/46 (strapping), 19/20 (USB), 21 (RGB LED), 4/5/6 (display).
   Good candidates for extra buttons: GPIO7, GPIO8.
@@ -30,14 +31,16 @@ render into `fb`, never call `max7219_set_digit()` directly.
 
 ## Code layout
 
-- `main/main.c` — app: framebuffer, `fb_flush()`, `push_column()`, `scroll_text()`, display task,
-  button task.
+- `main/main.c` — app: framebuffer, `fb_flush()`, non-blocking scroller (`scroller_next()` yields
+  one column per call), modes (`display_mode_t`: `enter` / `render` / `on_button`), button callback
+  → queue → display task. The display loop runs every `TICK_MS` and flushes only when `render()`
+  reports a change. New modes go into the `modes[]` table.
 - `main/font8x8.h` — ASCII 0x20..0x7E 8x8 font (public domain font8x8_basic). Byte 0 = top row,
-  bit 0 = leftmost pixel. `scroll_text()` trims empty glyph columns for proportional spacing.
+  bit 0 = leftmost pixel. The scroller trims empty glyph columns for proportional spacing.
 - `main/alphabet.h` — older hand-made `uint64_t` symbols (arrows, heart, sun, ...). Same orientation
   as the font (LSB byte = top row). Currently unused.
 - `components/` — vendored [esp-idf-lib](https://github.com/UncleRus/esp-idf-lib) drivers. Only
-  `max7219` and `esp_idf_lib_helpers` are used; `button` (click / long press) is a likely next one.
+  `max7219`, `esp_idf_lib_helpers` and `button` are used.
   Don't edit vendored drivers unless necessary.
 
 ## Building

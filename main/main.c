@@ -2,10 +2,13 @@
 #include <string.h>
 #include <freertos/FreeRTOS.h>
 #include <freertos/task.h>
+#include <freertos/queue.h>
 #include <driver/gpio.h>
+#include <esp_log.h>
 #include <esp_idf_version.h>
 #include <max7219.h>
 #include <esp_idf_lib_helpers.h>
+#include <button.h>
 
 #include "font8x8.h"
 
@@ -26,7 +29,18 @@
 #define LETTER_SPACING 1           // empty columns between letters
 #define SPACE_WIDTH 3              // width of ' ' in columns
 
-static const char *TEXT = "Hello, ESP32-S3! 0123456789";
+#define TICK_MS 10                 // display loop period
+#define DEMO_STEP_MS 40            // demo animation speed
+
+static const char *TAG = "8x8";
+
+// Messages for the text mode; a long press switches to the next one.
+static const char *MESSAGES[] = {
+    "Hello, ESP32-S3! 0123456789",
+    "8x32 LED matrix",
+    "Click BOOT: next mode. Hold BOOT: next text.",
+};
+#define MESSAGE_COUNT (sizeof(MESSAGES) / sizeof(MESSAGES[0]))
 
 
 // Logical framebuffer: one byte per column, x = 0 is the leftmost column.
@@ -51,15 +65,6 @@ static void fb_flush(max7219_t *dev)
     }
 }
 
-// Shift the whole display one column left and put `col` into the rightmost column.
-static void push_column(max7219_t *dev, uint8_t col, uint32_t delay_ms)
-{
-    memmove(fb, fb + 1, WIDTH - 1);
-    fb[WIDTH - 1] = col;
-    fb_flush(dev);
-    vTaskDelay(pdMS_TO_TICKS(delay_ms));
-}
-
 static const uint8_t *get_glyph(char c)
 {
     if (c < FONT8X8_FIRST || c > FONT8X8_LAST)
@@ -78,36 +83,180 @@ static uint8_t glyph_column(const uint8_t *glyph, int x)
     return col;
 }
 
-// Scroll a string from right to left until it fully leaves the display.
+// ---------------------------------------------------------------------------
+// Scroller: produces the columns of a string one at a time, so the display loop
+// never blocks and can react to buttons in the middle of a message.
 // Letters are proportional: empty columns on both sides of a glyph are trimmed.
-void scroll_text(max7219_t *dev, const char *text, uint32_t delay_ms)
-{
-    for (const char *p = text; *p; p++) {
-        const uint8_t *glyph = get_glyph(*p);
+// After the last letter it emits WIDTH blank columns and starts over.
 
+typedef struct {
+    const char *text;
+    const char *p;          // next character to load
+    const uint8_t *glyph;   // current glyph, NULL between glyphs
+    int x, last;            // remaining glyph columns: x..last
+    int blank;              // blank columns to emit before anything else
+} scroller_t;
+
+static void scroller_start(scroller_t *s, const char *text)
+{
+    s->text = text;
+    s->p = text;
+    s->glyph = NULL;
+    s->x = s->last = 0;
+    s->blank = 0;
+}
+
+static uint8_t scroller_next(scroller_t *s)
+{
+    for (;;) {
+        if (s->blank > 0) {
+            s->blank--;
+            return 0;
+        }
+
+        if (s->glyph) {
+            uint8_t col = glyph_column(s->glyph, s->x++);
+            if (s->x > s->last) {
+                s->glyph = NULL;
+                s->blank = LETTER_SPACING;
+            }
+            return col;
+        }
+
+        if (!*s->p) {
+            s->p = s->text;
+            s->blank = WIDTH;
+            continue;
+        }
+
+        const uint8_t *glyph = get_glyph(*s->p++);
         uint8_t used = 0;
         for (int y = 0; y < 8; y++)
             used |= glyph[y];
 
         if (!used) {
-            for (int i = 0; i < SPACE_WIDTH; i++)
-                push_column(dev, 0, delay_ms);
+            s->blank = SPACE_WIDTH;
             continue;
         }
 
-        int first = __builtin_ctz(used);
-        int last = 31 - __builtin_clz(used);
-        for (int x = first; x <= last; x++)
-            push_column(dev, glyph_column(glyph, x), delay_ms);
-        for (int i = 0; i < LETTER_SPACING; i++)
-            push_column(dev, 0, delay_ms);
+        s->glyph = glyph;
+        s->x = __builtin_ctz(used);
+        s->last = 31 - __builtin_clz(used);
     }
-
-    for (int i = 0; i < WIDTH; i++)
-        push_column(dev, 0, delay_ms);
 }
 
-void task(void *pvParameter)
+// ---------------------------------------------------------------------------
+// Modes. Each one draws into fb; the display loop calls render() every TICK_MS
+// and flushes fb only when render() reports a change.
+
+typedef enum {
+    EV_CLICK,
+    EV_LONG,
+} button_event_t;
+
+typedef struct {
+    const char *name;
+    void (*enter)(uint32_t now_ms);
+    bool (*render)(uint32_t now_ms);           // returns true if fb changed
+    void (*on_button)(button_event_t ev);      // long press action, may be NULL
+} display_mode_t;
+
+// Text mode: scrolls one of MESSAGES, long press picks the next one.
+
+static scroller_t text_scroller;
+static size_t text_index;
+static uint32_t text_last_ms;
+
+static void text_enter(uint32_t now_ms)
+{
+    memset(fb, 0, sizeof(fb));
+    scroller_start(&text_scroller, MESSAGES[text_index]);
+    text_last_ms = now_ms;
+}
+
+static bool text_render(uint32_t now_ms)
+{
+    if (now_ms - text_last_ms < CONFIG_EXAMPLE_SCROLL_DELAY)
+        return false;
+    text_last_ms = now_ms;
+
+    memmove(fb, fb + 1, WIDTH - 1);
+    fb[WIDTH - 1] = scroller_next(&text_scroller);
+    return true;
+}
+
+static void text_on_button(button_event_t ev)
+{
+    text_index = (text_index + 1) % MESSAGE_COUNT;
+    ESP_LOGI(TAG, "Message %u: %s", (unsigned)text_index, MESSAGES[text_index]);
+    text_enter(xTaskGetTickCount() * portTICK_PERIOD_MS);
+}
+
+// Demo mode: a dot bouncing around the 32x8 display. Placeholder until Clock.
+
+static int demo_x, demo_y, demo_dx, demo_dy;
+static uint32_t demo_last_ms;
+
+static void demo_enter(uint32_t now_ms)
+{
+    demo_x = 0;
+    demo_y = 0;
+    demo_dx = 1;
+    demo_dy = 1;
+    demo_last_ms = now_ms - DEMO_STEP_MS;  // draw the first frame right away
+}
+
+static bool demo_render(uint32_t now_ms)
+{
+    if (now_ms - demo_last_ms < DEMO_STEP_MS)
+        return false;
+    demo_last_ms = now_ms;
+
+    memset(fb, 0, sizeof(fb));
+    fb[demo_x] = 1 << demo_y;
+
+    if (demo_x + demo_dx < 0 || demo_x + demo_dx >= WIDTH)
+        demo_dx = -demo_dx;
+    if (demo_y + demo_dy < 0 || demo_y + demo_dy >= 8)
+        demo_dy = -demo_dy;
+    demo_x += demo_dx;
+    demo_y += demo_dy;
+    return true;
+}
+
+static const display_mode_t modes[] = {
+    { "Text", text_enter, text_render, text_on_button },
+    { "Demo", demo_enter, demo_render, NULL },
+};
+#define MODE_COUNT (sizeof(modes) / sizeof(modes[0]))
+
+// ---------------------------------------------------------------------------
+// Buttons. The driver calls back from its esp_timer task; events go through a
+// queue so all mode logic runs in the display task.
+
+static QueueHandle_t button_queue;
+
+static void on_button(button_t *btn, button_state_t state)
+{
+    button_event_t ev;
+    if (state == BUTTON_CLICKED)
+        ev = EV_CLICK;
+    else if (state == BUTTON_PRESSED_LONG)
+        ev = EV_LONG;
+    else
+        return;
+    xQueueSend(button_queue, &ev, 0);
+}
+
+static button_t boot_button = {
+    .gpio = BUTTON_GPIO,
+    .internal_pull = true,
+    .pressed_level = 0,
+    .autorepeat = false,
+    .callback = on_button,
+};
+
+void display_task(void *pvParameter)
 {
     // Configure SPI bus
     spi_bus_config_t cfg = {
@@ -131,33 +280,31 @@ void task(void *pvParameter)
     ESP_ERROR_CHECK(max7219_init(&dev));
     max7219_set_brightness(&dev, 0);
 
-    while (1)
-    {
-        scroll_text(&dev, TEXT, CONFIG_EXAMPLE_SCROLL_DELAY);
-    }
-}
-
-void button_task(void *pvParameter)
-{
-    gpio_config_t io_conf = {
-        .pin_bit_mask = (1ULL << BUTTON_GPIO),
-        .mode = GPIO_MODE_INPUT,
-        .pull_up_en = GPIO_PULLUP_ENABLE,
-        .pull_down_en = GPIO_PULLDOWN_DISABLE,
-        .intr_type = GPIO_INTR_DISABLE
-    };
-    gpio_config(&io_conf);
+    size_t mode = 0;
+    modes[mode].enter(xTaskGetTickCount() * portTICK_PERIOD_MS);
 
     while (1) {
-        int level = gpio_get_level(BUTTON_GPIO);
-        // Process button state here or send it to another task
-        printf("Button state: %d\n", level);
-        vTaskDelay(pdMS_TO_TICKS(1000));  // Poll every 1000 ms
+        button_event_t ev;
+        if (xQueueReceive(button_queue, &ev, pdMS_TO_TICKS(TICK_MS))) {
+            if (ev == EV_CLICK) {
+                mode = (mode + 1) % MODE_COUNT;
+                ESP_LOGI(TAG, "Click: mode %s", modes[mode].name);
+                modes[mode].enter(xTaskGetTickCount() * portTICK_PERIOD_MS);
+            } else {
+                ESP_LOGI(TAG, "Long press in mode %s", modes[mode].name);
+                if (modes[mode].on_button)
+                    modes[mode].on_button(ev);
+            }
+        }
+
+        if (modes[mode].render(xTaskGetTickCount() * portTICK_PERIOD_MS))
+            fb_flush(&dev);
     }
 }
 
 void app_main()
 {
-    xTaskCreatePinnedToCore(task, "task", configMINIMAL_STACK_SIZE * 3, NULL, 5, NULL, APP_CPU_NUM);
-    xTaskCreatePinnedToCore(button_task, "button_task", configMINIMAL_STACK_SIZE * 3, NULL, 5, NULL, APP_CPU_NUM);
+    button_queue = xQueueCreate(8, sizeof(button_event_t));
+    ESP_ERROR_CHECK(button_init(&boot_button));
+    xTaskCreatePinnedToCore(display_task, "display", 4096, NULL, 5, NULL, APP_CPU_NUM);
 }

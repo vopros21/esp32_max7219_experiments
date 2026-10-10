@@ -27,7 +27,12 @@ idf.py set-target esp32s3   # first time only
 idf.py build flash monitor
 ```
 
-Change the text in `TEXT` at the top of `main/main.c`; scroll speed is
+## Usage
+
+- Click BOOT: next mode (Text, Demo).
+- Hold BOOT ~1 s in Text mode: next message.
+
+Messages are in `MESSAGES` at the top of `main/main.c`; scroll speed is
 `CONFIG_EXAMPLE_SCROLL_DELAY` (`idf.py menuconfig` → Example configuration).
 
 ## Credits
