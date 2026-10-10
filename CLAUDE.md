@@ -25,19 +25,28 @@ digit = (x / 8) * 8 + y      // index passed to max7219_set_digit(), with dev.mi
 bit   = x % 8
 ```
 
-This mapping lives only in `fb_flush()` in `main/main.c`. Everything else draws into the logical
+This mapping lives only in `fb_flush()` in `main/display.c`. Everything else draws into the logical
 framebuffer `fb[32]` (one byte per column, bit y = row y). Keep it that way: new modes should
 render into `fb`, never call `max7219_set_digit()` directly.
 
 ## Code layout
 
-- `main/main.c` — app: framebuffer, `fb_flush()`, non-blocking scroller (`scroller_next()` yields
-  one column per call), modes (`display_mode_t`: `enter` / `render` / `on_button`), button callback
-  → queue → display task. The display loop runs every `TICK_MS` and flushes only when `render()`
-  reports a change. New modes go into the `modes[]` table. Button events: `EV_CLICK` (next mode,
-  handled by the loop), `EV_LONG` (~1 s) and `EV_VERY_LONG` (3 s, timed by the loop from raw
-  press / release) go to the mode's `on_button`. The Pomodoro timer runs in the background
+- `main/main.c` — startup and the display loop: runs every `TICK_MS`, routes button events,
+  flushes `fb` only when the mode's `render()` reports a change. Click = next mode; `EV_LONG`
+  (~1 s) and `EV_VERY_LONG` (3 s, timed by the loop from raw press / release) go to the mode's
+  `on_button`; a 10 s hold erases settings and reboots into setup.
+- `main/display.c/.h` — framebuffer `fb`, `fb_flush()` (rotation mapping), SPI / MAX7219 init,
+  non-blocking scroller (`scroller_next()` yields one column per call), `draw_narrow()`.
+- `main/buttons.c/.h` — BOOT button via `components/button`, callback → queue.
+- `main/modes.c/.h` — `display_mode_t` (`enter` / `render` / `on_button`) and the `modes[]` table:
+  Text (messages set by `main.c`), Clock, Pomodoro. The Pomodoro timer runs in the background
   (`pomodoro_tick()`) and takes over the display when a phase ends.
+- `main/settings.c/.h` — `settings_t` (Wi-Fi, GitHub user / token, POSIX TZ) in NVS namespace
+  `hubithab`. Configured = SSID set.
+- `main/portal.c/.h` — setup mode: open SoftAP `HubitHab-XXXX` (from MAC), DNS answers everything
+  with 192.168.4.1, `esp_http_server` form at `/`, `/rescan`, `POST /save` → NVS → reboot; 404s
+  redirect to the form (captive portal). Responses are chunked: an empty chunk ends the response,
+  so `send()` skips empty strings.
 - `main/font8x8.h` — ASCII 0x20..0x7E 8x8 font (public domain font8x8_basic). Byte 0 = top row,
   bit 0 = leftmost pixel. The scroller trims empty glyph columns for proportional spacing.
 - `main/font_digits.h` — hand-drawn 5x7 digits plus `:` / `.` for the clock, stored by column
@@ -47,7 +56,8 @@ render into `fb`, never call `max7219_set_digit()` directly.
 - `main/alphabet.h` — older hand-made `uint64_t` symbols (arrows, heart, sun, ...). Same orientation
   as the font (LSB byte = top row). Currently unused.
 - `components/` — vendored [esp-idf-lib](https://github.com/UncleRus/esp-idf-lib) drivers. Only
-  `max7219`, `esp_idf_lib_helpers` and `button` are used.
+  `max7219`, `esp_idf_lib_helpers` and `button` are used. `components/dns_server` is copied from
+  ESP-IDF's `captive_portal` example (Unlicense / CC0).
   Don't edit vendored drivers unless necessary.
 
 ## Building
@@ -64,11 +74,11 @@ Target is `esp32s3`. The working Python env is `~/.espressif/python_env/idf5.2_p
 (the `idf5.2_py3.9_env` one is broken). If `idf.py` complains about a Python env mismatch,
 run `idf.py fullclean` — `build/` is generated and git-ignored.
 
-Partition table is the default single-app (1 MB app). Wi-Fi + HTTPS will need a larger app partition.
+Partition table is `partitions.csv`: NVS + two 1.9 MB app slots (`ota_0` / `ota_1`) for future OTA.
 
 ## Verifying without hardware
 
-Display logic can be checked on the host: compile `main/main.c` with stub headers
+Display logic can be checked on the host: compile `main/display.c` / `main/modes.c` with stub headers
 (`freertos/*.h`, `driver/gpio.h`, `max7219.h`, ...), implement `max7219_set_digit()` to record
 digits and `vTaskDelay()` to snapshot frames, then print `fb` as ASCII art. This is how the
 string scroller was checked against the original single-letter `run_text`.

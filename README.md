@@ -27,12 +27,20 @@ idf.py set-target esp32s3   # first time only
 idf.py build flash monitor
 ```
 
+## Setup
+
+On first boot (or after holding BOOT for 10 s) the board starts an open Wi-Fi network
+`HubitHab-XXXX`, and the display shows its name. Join it from a phone: the setup page opens
+automatically (otherwise go to http://192.168.4.1). Enter Wi-Fi, GitHub username, optional
+read-only GitHub token and time zone, then save; the board restarts with the new settings.
+
 ## Usage
 
 - Click BOOT: next mode (Text, Clock, Pomodoro).
 - Hold BOOT ~1 s: mode action — Text: next message, Clock: toggle time / date,
   Pomodoro: start / pause.
 - Hold BOOT 3 s in Pomodoro: reset.
+- Hold BOOT 10 s: erase settings and restart into setup.
 
 Pomodoro alternates 25 min work / 5 min break (`idf.py menuconfig` → HubitHab). The bottom row is a
 progress bar: it fills during work and empties during a break. When a phase ends the display jumps
@@ -40,7 +48,7 @@ to Pomodoro from any mode and flashes.
 
 Until Wi-Fi time sync exists, the clock starts from the build time, so it resets on every reboot.
 
-Messages are in `MESSAGES` at the top of `main/main.c`; scroll speed is
+Scroll speed is
 `CONFIG_EXAMPLE_SCROLL_DELAY` (`idf.py menuconfig` → Example configuration).
 
 ## Credits

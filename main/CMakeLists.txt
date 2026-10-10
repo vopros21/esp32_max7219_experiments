@@ -1,8 +1,8 @@
-idf_component_register(SRCS "main.c"
+idf_component_register(SRCS "main.c" "display.c" "buttons.c" "modes.c" "settings.c" "portal.c"
                     INCLUDE_DIRS ".")
 
 # Generate build_time.h on every build. The second OUTPUT is never created, which
-# keeps the command out of date; main.c is then recompiled with the new time.
+# keeps the command out of date; modes.c is then recompiled with the new time.
 set(build_time_h "${CMAKE_CURRENT_BINARY_DIR}/build_time.h")
 add_custom_command(
     OUTPUT "${build_time_h}" "${CMAKE_CURRENT_BINARY_DIR}/build_time_always"

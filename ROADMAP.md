@@ -74,8 +74,11 @@ Holding a button for 10 s erases the credentials and returns to setup mode.
   - [x] Mode framework, buttons (click / long press), non-blocking scroller, Demo mode.
   - [x] Narrow digit font, Clock (starts from build time for now).
   - [x] Pomodoro.
-- [ ] **2. Provisioning** — SoftAP + captive portal + NVS, station mode with fallback, Wi-Fi reset
-      on long hold, SNTP + time zone.
+- [ ] **2. Provisioning**
+  - [x] Split `main.c` into modules, OTA-ready partition table.
+  - [x] SoftAP + captive portal + NVS settings, 10 s hold = reset to setup.
+  - [ ] Station mode with fallback to setup, show IP.
+  - [ ] SNTP + time zone.
 - [ ] **3. GitHub** — HTTPS fetch, JSON parsing, heatmap + stats rendering, polling.
 - [ ] **4. Extras** — settings page in station mode (brightness, username, modes on/off),
       mDNS `hubithab.local`, more modes (weather, messages), OTA updates, status LED.
