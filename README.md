@@ -38,6 +38,10 @@ With saved settings it joins your Wi-Fi and shows its IP address. If the first t
 (wrong password, network not found) it opens the setup network again with the form pre-filled, and
 restarts after 5 minutes to retry if nobody uses it. Later drops are retried in the background.
 
+GitHub data refreshes every 15 minutes. The contribution calendar needs a token: create a
+fine-grained token (GitHub → Settings → Developer settings) with public repositories read-only and
+no extra permissions. Without a token only followers and public repos are shown.
+
 ## Usage
 
 - Click BOOT: next mode (Text, Clock, Pomodoro).

@@ -12,6 +12,7 @@
 #include "settings.h"
 #include "portal.h"
 #include "wifi.h"
+#include "github.h"
 
 #ifndef APP_CPU_NUM
 #define APP_CPU_NUM PRO_CPU_NUM
@@ -104,5 +105,7 @@ void app_main()
         text_set_status("Can't join %s (%s). Setup: join Wi-Fi %s, open 192.168.4.1",
                         settings.ssid, why, portal_ap_ssid());
         portal_start(true);
+        return;
     }
+    github_start();
 }

@@ -1,4 +1,4 @@
-idf_component_register(SRCS "main.c" "display.c" "buttons.c" "modes.c" "settings.c" "portal.c" "wifi.c"
+idf_component_register(SRCS "main.c" "display.c" "buttons.c" "modes.c" "settings.c" "portal.c" "wifi.c" "github.c"
                     INCLUDE_DIRS ".")
 
 # Generate build_time.h on every build. The second OUTPUT is never created, which

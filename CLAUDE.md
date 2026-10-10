@@ -49,6 +49,11 @@ render into `fb`, never call `max7219_set_digit()` directly.
   status line. Hostname `hubithab`. After the first IP it starts SNTP (`pool.ntp.org`, hourly);
   the first sync calls `clock_set_synced()`. `main.c` applies the saved POSIX TZ before
   `clock_set_initial_time()`, so the build-time guess is read in the right zone.
+- `main/github.c/.h` — background task (started after Wi-Fi), refreshes every 15 min, 1 min retry
+  on error. Token set: GraphQL `contributionsCollection` from the Sunday 31 weeks ago → 32x7
+  `days[week][weekday]` (Sunday = 0, `GH_NO_DAY` after today), today, streak, followers. No token:
+  REST `/users/<name>` (followers, public repos). `github_get()` copies under a mutex. Uses
+  `esp_http_client` + `esp_crt_bundle`, cJSON. Never log the token.
 - `main/portal.c/.h` — setup mode: open SoftAP `HubitHab-XXXX` (from MAC), DNS answers everything
   with 192.168.4.1, `esp_http_server` form at `/`, `/rescan`, `POST /save` → NVS → reboot; 404s
   redirect to the form (captive portal). Responses are chunked: an empty chunk ends the response,
